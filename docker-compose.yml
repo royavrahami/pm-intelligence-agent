@@ -1,0 +1,51 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PM Intelligence Agent – Docker Compose
+#
+# Usage:
+#   cp .env.example .env          # configure at minimum OPENAI_API_KEY
+#   docker compose up -d          # start recurring scheduler (background)
+#   docker compose logs -f        # follow logs
+#   docker compose --profile run-once up pm-agent-run-once  # single run
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── Recurring scheduler (primary service) ───────────────────────────────────
+  pm-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pm-intelligence-agent:latest
+    container_name: pm-intelligence-agent
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      # Persist the SQLite database and generated reports across container restarts
+      - pm_data:/app/data
+      - pm_reports:/app/reports
+      - pm_logs:/app/logs
+    command: ["python", "main.py", "schedule"]
+
+  # ── One-shot run (for CI pipelines or manual testing) ────────────────────────
+  pm-agent-run-once:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pm-intelligence-agent:latest
+    container_name: pm-intelligence-agent-run-once
+    env_file: .env
+    volumes:
+      - pm_data:/app/data
+      - pm_reports:/app/reports
+    command: ["python", "main.py", "run"]
+    profiles:
+      - run-once
+
+volumes:
+  pm_data:
+    driver: local
+  pm_reports:
+    driver: local
+  pm_logs:
+    driver: local

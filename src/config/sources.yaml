@@ -1,0 +1,235 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# PM Intelligence Agent – Information Sources Configuration
+# Focus: Project Management & Program Management in high-tech
+#
+# category: primary category tag used for trend grouping and scoring
+# relevance_boost: extra weight (+N) for this source's items in scoring
+# ─────────────────────────────────────────────────────────────────────────────
+
+rss_feeds:
+  # ── Project & Program Management ─────────────────────────────────────────
+  # PMI Blog removed – their RSS feed is malformed (XML encoding issue)
+  # Use Medium/InfoQ PM tags instead (working alternatives)
+
+  - name: "Agile Alliance Blog"
+    url: "https://www.agilealliance.org/feed/"
+    category: "agile"
+    relevance_boost: 14
+
+  # Mountain Goat Software (Mike Cohn) removed – RSS has XML encoding issues
+
+  - name: "Scrum.org Blog"
+    url: "https://www.scrum.org/resources/blog/rss.xml"
+    category: "agile"
+    relevance_boost: 13
+
+  - name: "Roman Pichler Blog"
+    url: "https://www.romanpichler.com/feed/"
+    category: "strategy"
+    relevance_boost: 12
+
+  - name: "Atlassian Blog"
+    url: "https://www.atlassian.com/blog/rss"
+    category: "tools"
+    relevance_boost: 12
+
+  - name: "SAFe Blog (Scaled Agile)"
+    url: "https://scaledagile.com/feed/"
+    category: "program_management"
+    relevance_boost: 13
+
+  # InfoQ removed – all RSS URL formats return malformed XML (mismatched tags)
+
+  # ── Engineering Leadership ────────────────────────────────────────────────
+  - name: "The Pragmatic Engineer (Gergely Orosz)"
+    url: "https://newsletter.pragmaticengineer.com/feed"
+    category: "leadership"
+    relevance_boost: 14
+
+  # Will Larson (lethain.com) removed – RSS/Atom feeds return 404
+
+  - name: "LeadDev"
+    url: "https://leaddev.com/feed"
+    category: "leadership"
+    relevance_boost: 12
+
+  # Engineering Management Weekly removed – DNS failure (domain unreachable)
+
+  - name: "The Engineering Manager"
+    url: "https://www.theengineeringmanager.com/feed/"
+    category: "leadership"
+    relevance_boost: 10
+
+  # ── Product & Strategy ────────────────────────────────────────────────────
+  # Mind the Product removed – RSS feed has XML encoding issues
+
+  - name: "ProductPlan Blog"
+    url: "https://www.productplan.com/blog/feed/"
+    category: "strategy"
+    relevance_boost: 10
+
+  - name: "Lenny's Newsletter"
+    url: "https://www.lennysnewsletter.com/feed"
+    category: "strategy"
+    relevance_boost: 12
+
+  # First Round Review removed – RSS feed has syntax errors
+
+  - name: "McKinsey Insights"
+    url: "https://www.mckinsey.com/insights/rss"
+    category: "strategy"
+    relevance_boost: 11
+
+  - name: "DZone – Agile"
+    url: "https://feeds.dzone.com/agile"
+    category: "agile"
+    relevance_boost: 8
+
+  # ── AI in Project Management ──────────────────────────────────────────────
+  - name: "Medium – Project Management"
+    url: "https://medium.com/feed/tag/project-management"
+    category: "project_management"
+    relevance_boost: 6
+
+  - name: "Medium – Program Management"
+    url: "https://medium.com/feed/tag/program-management"
+    category: "program_management"
+    relevance_boost: 7
+
+  - name: "Medium – Agile"
+    url: "https://medium.com/feed/tag/agile"
+    category: "agile"
+    relevance_boost: 5
+
+  - name: "Medium – Engineering Management"
+    url: "https://medium.com/feed/tag/engineering-management"
+    category: "leadership"
+    relevance_boost: 6
+
+  # ── DevOps & Delivery ────────────────────────────────────────────────────
+  - name: "Martin Fowler"
+    url: "https://martinfowler.com/feed.atom"
+    category: "agile"
+    relevance_boost: 10
+
+  - name: "DevOps.com"
+    url: "https://devops.com/feed/"
+    category: "tools"
+    relevance_boost: 6
+
+  - name: "The New Stack"
+    url: "https://thenewstack.io/feed/"
+    category: "tools"
+    relevance_boost: 5
+
+  # ── General Tech News ─────────────────────────────────────────────────────
+  - name: "Hacker News (Top)"
+    url: "https://hnrss.org/frontpage"
+    category: "tools"
+    relevance_boost: 4
+
+  - name: "GitHub Blog"
+    url: "https://github.blog/feed/"
+    category: "tools"
+    relevance_boost: 7
+
+  - name: "Dev.to – Management"
+    url: "https://dev.to/feed/tag/management"
+    category: "leadership"
+    relevance_boost: 5
+
+web_sources:
+  # ── GitHub Trending ─────────────────────────────────────────────────────
+  - name: "GitHub Trending – Project Management Tools"
+    url: "https://github.com/trending?since=weekly"
+    type: "github_trending"
+    category: "tools"
+    relevance_boost: 7
+
+  # ── Arxiv Papers ────────────────────────────────────────────────────────
+  - name: "Arxiv – AI Project Management"
+    url: "https://arxiv.org/search/?query=ai+project+management+software&searchtype=all&start=0"
+    type: "arxiv"
+    category: "ai_pm"
+    relevance_boost: 14
+
+  - name: "Arxiv – Agile Software Development Research"
+    url: "https://arxiv.org/search/?query=agile+software+development+empirical&searchtype=all&start=0"
+    type: "arxiv"
+    category: "agile"
+    relevance_boost: 12
+
+keywords:
+  # Items containing these keywords receive the highest relevance boost
+  high_relevance:
+    - "program management"
+    - "project management"
+    - "okr"
+    - "okrs"
+    - "agile"
+    - "scrum"
+    - "kanban"
+    - "safe"
+    - "scaled agile"
+    - "sprint planning"
+    - "roadmap"
+    - "stakeholder management"
+    - "risk management"
+    - "resource planning"
+    - "delivery management"
+    - "portfolio management"
+    - "engineering manager"
+    - "team lead"
+    - "tech lead"
+    - "pmo"
+    - "program manager"
+    - "project manager"
+    - "ai project management"
+    - "llm project management"
+    - "copilot pm"
+    - "sprint"
+    - "retrospective"
+
+  medium_relevance:
+    - "velocity"
+    - "burndown"
+    - "backlog"
+    - "product owner"
+    - "scrum master"
+    - "agile transformation"
+    - "lean"
+    - "continuous improvement"
+    - "prioritization"
+    - "capacity planning"
+    - "milestone"
+    - "jira"
+    - "confluence"
+    - "asana"
+    - "linear"
+    - "gantt"
+    - "waterfall"
+    - "hybrid agile"
+    - "devops"
+    - "ci/cd"
+    - "dependencies"
+    - "estimation"
+    - "definition of done"
+    - "definition of ready"
+    - "kpi"
+    - "metrics"
+    - "dora"
+    - "team performance"
+
+  low_relevance:
+    - "team"
+    - "delivery"
+    - "planning"
+    - "engineering"
+    - "product"
+    - "workflow"
+    - "collaboration"
+    - "cloud"
+    - "automation"
+    - "developer"
+    - "software"
+    - "process"
