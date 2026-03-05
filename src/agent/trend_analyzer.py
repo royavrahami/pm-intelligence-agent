@@ -139,19 +139,37 @@ class TrendAnalyzer:
             data = json.loads(raw)
 
             if isinstance(data, list):
-                return data
+                # Ensure list contains dicts, not primitives (e.g. article indices)
+                return [item for item in data if isinstance(item, dict)]
+
             if isinstance(data, dict):
-                # Try well-known wrapper keys first
+                # 1. Try well-known wrapper keys – only accept lists of dicts
                 for key in ("trends", "items", "results", "data", "output", "response"):
                     if key in data and isinstance(data[key], list):
-                        return data[key]
-                # Fallback: return the first list value found in the dict
+                        candidates = [item for item in data[key] if isinstance(item, dict)]
+                        if candidates:
+                            return candidates
+
+                # 2. Find the first list-of-dicts anywhere in the values
                 for value in data.values():
                     if isinstance(value, list) and value:
-                        logger.debug("TrendAnalyzer: using first list value from dict (key count=%d)", len(data))
-                        return value
+                        candidates = [item for item in value if isinstance(item, dict)]
+                        if candidates:
+                            logger.debug("TrendAnalyzer: extracted list-of-dicts from dict values (keys=%s)", list(data.keys()))
+                            return candidates
 
-            logger.warning("Unexpected PM trend response format: %s | keys: %s", type(data), list(data.keys()) if isinstance(data, dict) else "N/A")
+                # 3. The dict values themselves might be trend objects (keyed by index)
+                expected_keys = {"name", "description", "category", "is_alert"}
+                dict_values = [v for v in data.values() if isinstance(v, dict)]
+                if dict_values and any(expected_keys & set(v.keys()) for v in dict_values):
+                    logger.debug("TrendAnalyzer: wrapping dict-of-trends into list (keys=%s)", list(data.keys()))
+                    return dict_values
+
+            logger.warning(
+                "Unexpected PM trend response format: %s | keys: %s",
+                type(data),
+                list(data.keys()) if isinstance(data, dict) else "N/A",
+            )
             return []
 
         except openai.RateLimitError:
