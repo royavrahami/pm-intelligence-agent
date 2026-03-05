@@ -1,47 +1,55 @@
-# Environment & secrets
+# ── Secrets & environment – NEVER commit these ────────────────────────────────
 .env
+.env.local
+.env.*.local
 *.env
+secrets.json
+credentials.json
 
-# Python
+# ── Database (local runtime state) ────────────────────────────────────────────
+data/
+*.db
+*.sqlite
+*.db-shm
+*.db-wal
+
+# ── Generated reports (runtime output) ────────────────────────────────────────
+reports/
+# Keep templates that are part of the source
+!src/reports/
+!src/reports/**
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 .Python
-*.egg
+.venv/
+venv/
+env/
+ENV/
 *.egg-info/
 dist/
 build/
 .eggs/
 
-# Virtual environments
-.venv/
-venv/
-ENV/
-
-# Testing & coverage
+# ── Test & coverage artifacts ─────────────────────────────────────────────────
 .pytest_cache/
 htmlcov/
 .coverage
+.coverage.*
 coverage.xml
 *.cover
 
-# Generated reports (not tracked – too large / regenerated every run)
-reports/*.html
-reports/*.md
-
-# Database (contains PII / raw data – never track)
-data/*.db
-data/*.db-shm
-data/*.db-wal
-
-# Logs
-logs/
-*.log
-
-# IDEs
-.idea/
+# ── IDE ───────────────────────────────────────────────────────────────────────
 .vscode/
+.idea/
 *.swp
 *.swo
 .DS_Store
+Thumbs.db
