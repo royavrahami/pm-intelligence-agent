@@ -65,7 +65,9 @@ For each suggestion, return a JSON object:
   "reason": "<1 sentence explaining why this source is valuable for a Project/Program Manager>"
 }
 
-Return a JSON array. No markdown, no preamble."""
+Return a JSON object with key `sources` containing an array of source objects.
+Example: {"sources": [{"name": "...", "url": "...", ...}, ...]}
+No markdown, no preamble."""
 
 
 class SourceDiscoverer:
@@ -114,7 +116,7 @@ class SourceDiscoverer:
     def _discover_from_article_pages(self) -> int:
         """Scan recent article pages for embedded RSS feed links."""
         since = datetime.now(timezone.utc) - timedelta(hours=24)
-        articles = self._article_repo.get_for_report(since=since, min_score=65.0)
+        articles = self._article_repo.get_for_report(since=since, min_score=settings.min_relevance_score)
 
         discovered_domains: set[str] = set()
         new_count = 0
@@ -202,12 +204,16 @@ class SourceDiscoverer:
                 max_tokens=1000,
                 temperature=0.5,
                 response_format={"type": "json_object"},
+                timeout=60,
             )
             raw = response.choices[0].message.content
             suggestions = self._parse_suggestions(raw)
 
         except openai.RateLimitError:
             logger.warning("Rate limit hit during PM source discovery LLM call")
+            return 0
+        except openai.APITimeoutError:
+            logger.warning("OpenAI API timeout during PM source discovery (timeout=60s)")
             return 0
         except Exception as exc:
             logger.error("LLM PM source discovery failed: %s", exc)
@@ -234,10 +240,24 @@ class SourceDiscoverer:
         try:
             data = json.loads(raw_json)
             if isinstance(data, list):
-                return data
-            for key in ("suggestions", "sources", "items"):
-                if key in data and isinstance(data[key], list):
-                    return data[key]
+                return [item for item in data if isinstance(item, dict)]
+
+            if isinstance(data, dict):
+                # Check all commonly used wrapper keys (GPT uses varied key names)
+                for key in ("sources", "suggestions", "items", "results",
+                            "new_sources", "recommended_sources", "data", "output"):
+                    if key in data and isinstance(data[key], list):
+                        candidates = [item for item in data[key] if isinstance(item, dict)]
+                        if candidates:
+                            return candidates
+
+                # Generic fallback: find any list-of-dicts value
+                for value in data.values():
+                    if isinstance(value, list) and value:
+                        candidates = [item for item in value if isinstance(item, dict)]
+                        if candidates:
+                            return candidates
+
         except Exception as exc:
             logger.warning("Failed to parse source discovery response: %s", exc)
         return []

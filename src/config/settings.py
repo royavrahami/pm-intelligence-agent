@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     # ── OpenAI ────────────────────────────────────────────────────────────────
     openai_api_key: str = Field(default="", description="OpenAI API key (required for AI features)")
     openai_model: str = Field(default="gpt-4o-mini", description="OpenAI model for summarisation")
-    openai_max_tokens: int = Field(default=600, description="Max tokens per summarisation call")
+    openai_max_tokens: int = Field(default=2000, description="Max tokens per summarisation call")
 
     # ── GitHub ────────────────────────────────────────────────────────────────
     github_token: str = Field(default="", description="GitHub PAT – raises API rate limit from 60 to 5000/hr")

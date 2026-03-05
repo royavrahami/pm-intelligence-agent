@@ -22,9 +22,19 @@ if not exist data mkdir data
 if not exist reports mkdir reports
 if not exist logs mkdir logs
 
+REM Generate run.bat launcher with PYTHONNOUSERSITE=1 to prevent
+REM Windows Store Python stubs from shadowing venv packages
+(
+    echo @echo off
+    echo SET PYTHONNOUSERSITE=1
+    echo call "%%~dp0.venv\Scripts\activate.bat"
+    echo python main.py %%*
+) > run.bat
+
 echo.
 echo Setup complete!
 echo Next steps:
 echo   1. Edit .env and set OPENAI_API_KEY=sk-...
-echo   2. Run: python main.py run
-echo   3. For recurring schedule: python main.py schedule
+echo   2. Run: run.bat run          (Option A - recommended on Windows)
+echo      OR:  python main.py run   (Option B - if venv is already activated)
+echo   3. For recurring schedule: run.bat schedule

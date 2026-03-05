@@ -22,6 +22,18 @@ intelligence reports tailored for **Project Managers**, **Program Managers**, an
 
 ## Quick Start
 
+### Windows
+
+```bat
+setup.bat       :: creates .venv, installs deps, creates run.bat
+run.bat run     :: first run
+```
+
+> **Windows note:** `run.bat` sets `PYTHONNOUSERSITE=1` to prevent
+> Windows Store Python stubs from shadowing venv packages.
+
+### Linux / macOS
+
 ### 1. Clone and configure
 
 ```bash
@@ -34,7 +46,7 @@ cp .env.example .env
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -91,7 +103,8 @@ All settings are via environment variables (`.env` file):
 | Variable                  | Default            | Description                                                |
 | ------------------------- | ------------------ | ---------------------------------------------------------- |
 | OPENAI_API_KEY            | **required**       | OpenAI API key                                             |
-| OPENAI_MODEL              | gpt-4o-mini        | Model for summarisation and trend analysis                 |
+| OPENAI_MODEL              | gpt-4o             | Model for summarisation and trend analysis                 |
+| OPENAI_MAX_TOKENS         | 2000               | Max tokens per summarisation call (600 truncates output)   |
 | GITHUB_TOKEN              | optional           | GitHub PAT (raises API rate limit from 60 → 5000 req/hr)  |
 | SCHEDULE_INTERVAL_HOURS   | 6                  | How often the agent runs                                   |
 | MIN_RELEVANCE_SCORE       | 55                 | Minimum score (0–100) to include an article in reports     |

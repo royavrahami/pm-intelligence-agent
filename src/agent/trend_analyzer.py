@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -48,7 +49,9 @@ For each trend return a JSON object:
   "article_indices": [<list of 0-based indices from the input that support this trend>]
 }
 
-Return a JSON array of trend objects. No markdown, no preamble.
+Return a JSON object with a single key `trends` whose value is an array of trend objects.
+Example: {"trends": [{"name": "...", "description": "...", ...}, ...]}
+No markdown, no preamble.
 Focus on: AI-assisted PM tools, agile framework shifts, new leadership patterns, OKR methodologies, remote/hybrid team challenges."""
 
 _MOMENTUM_ALERT_THRESHOLD = 5
@@ -98,6 +101,7 @@ class TrendAnalyzer:
             return []
 
         logger.info("TrendAnalyzer: analysing %d articles for PM trends", len(articles))
+        time.sleep(2)  # Rate-limit buffer before the LLM call
         trend_data = self._detect_trends_with_llm(articles)
 
         if not trend_data:
@@ -134,6 +138,7 @@ class TrendAnalyzer:
                 max_tokens=1500,
                 temperature=0.4,
                 response_format={"type": "json_object"},
+                timeout=60,
             )
             raw = response.choices[0].message.content
             data = json.loads(raw)
@@ -165,6 +170,11 @@ class TrendAnalyzer:
                     logger.debug("TrendAnalyzer: wrapping dict-of-trends into list (keys=%s)", list(data.keys()))
                     return dict_values
 
+                # 4. Last resort: the dict itself IS a single trend object
+                if expected_keys & set(data.keys()):
+                    logger.debug("TrendAnalyzer: wrapping single flat trend dict into list")
+                    return [data]
+
             logger.warning(
                 "Unexpected PM trend response format: %s | keys: %s",
                 type(data),
@@ -174,6 +184,8 @@ class TrendAnalyzer:
 
         except openai.RateLimitError:
             logger.warning("OpenAI rate limit hit during PM trend analysis")
+        except openai.APITimeoutError:
+            logger.warning("OpenAI API timeout during PM trend analysis (timeout=60s)")
         except Exception as exc:
             logger.error("PM trend LLM call failed: %s", exc)
         return []
