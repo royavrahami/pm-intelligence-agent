@@ -12,6 +12,7 @@ Tables:
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 
 from sqlalchemy import (
@@ -103,6 +104,16 @@ class Article(Base):
 
     source = relationship("Source", back_populates="articles")
     trend_tags = relationship("ArticleTrendTag", back_populates="article", cascade="all, delete-orphan")
+
+    @property
+    def insights_list(self) -> list[str]:
+        """Deserialise the JSON-stored key_insights field into a Python list."""
+        if self.key_insights:
+            try:
+                return json.loads(self.key_insights)
+            except (json.JSONDecodeError, TypeError):
+                return []
+        return []
 
     def __repr__(self) -> str:
         return f"<Article id={self.id} score={self.relevance_score} title={self.title!r:.40}>"
