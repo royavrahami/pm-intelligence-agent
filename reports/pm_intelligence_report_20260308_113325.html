@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PM Intelligence Report – 08 Mar 2026 11:33 UTC</title>
+  <style>
+    :root {
+      --primary:   #0f3460;
+      --accent:    #e94560;
+      --light:     #f5f7fa;
+      --card-bg:   #ffffff;
+      --border:    #e0e6ed;
+      --text:      #1a1a2e;
+      --muted:     #6b7280;
+      --success:   #10b981;
+      --warning:   #f59e0b;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--light);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
+      color: white;
+      padding: 36px 40px;
+    }
+    .header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
+    .header p  { opacity: 0.75; margin-top: 6px; font-size: 0.9rem; }
+    .stats-row { display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap; }
+    .stat-card {
+      background: rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+    }
+    .stat-card .num { font-size: 1.8rem; font-weight: 800; }
+    .stat-card .lbl { font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ── Layout ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+    section { margin-bottom: 48px; }
+    h2 {
+      font-size: 1.4rem;
+      color: var(--primary);
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      transition: box-shadow 0.2s;
+    }
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    .card.alert-card { border-left: 5px solid var(--accent); background: #fff8f8; }
+
+    /* ── Article Card ── */
+    .article-title a {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .article-title a:hover { text-decoration: underline; color: var(--accent); }
+    .article-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 6px 0 12px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-cat    { background: #dbeafe; color: #1d4ed8; }
+    .badge-score  { background: var(--accent); color: white; }
+    .badge-alert  { background: #fde68a; color: #92400e; }
+    .badge-trend  { background: #d1fae5; color: #065f46; }
+
+    /* ── Star Rating ── */
+    .star-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8rem;
+    }
+    .stars       { letter-spacing: 1px; font-size: 1rem; line-height: 1; }
+    .score-num   { font-weight: 700; font-size: 0.8rem; padding: 1px 6px;
+                   border-radius: 4px; color: white; }
+
+    .article-summary { color: var(--text); margin-bottom: 10px; font-size: 0.95rem; }
+
+    .insights { margin: 10px 0; }
+    .insight-item {
+      background: #eff6ff;
+      border-left: 3px solid var(--primary);
+      padding: 6px 12px;
+      margin: 4px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+    }
+
+    /* PM-relevance box (mirrors qa-box in QA agent) */
+    .pm-box {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+    .pm-box strong { color: #166534; }
+
+    /* ── Trend Card ── */
+    .trend-card { display: flex; gap: 16px; align-items: flex-start; }
+    .trend-icon { font-size: 1.8rem; flex-shrink: 0; }
+    .trend-body { flex: 1; }
+    .trend-name { font-size: 1rem; font-weight: 700; color: var(--primary); }
+    .trend-desc { font-size: 0.9rem; color: #374151; margin-top: 4px; }
+    .trend-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+    .momentum-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .momentum-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success), var(--accent));
+      border-radius: 3px;
+    }
+
+    /* ── Category Sections ── */
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 32px 0 12px;
+    }
+    .category-icon { font-size: 1.5rem; }
+    .category-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+    .category-count { font-size: 0.8rem; color: var(--muted); }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .header { padding: 24px 16px; }
+      .container { padding: 16px; }
+      .stats-row { gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── REQ-08: Quota Warning Banner ────────────────────────────────────── -->
+
+
+<!-- ── Header ────────────────────────────────────────────────────────────── -->
+<div class="header">
+  <h1>📋 PM Intelligence Report</h1>
+  <p>Generated: 08 Mar 2026 11:33 UTC &nbsp;|&nbsp; Run #2</p>
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="num">15</div>
+      <div class="lbl">Articles</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">10</div>
+      <div class="lbl">Trends</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">6</div>
+      <div class="lbl">Alerts</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">4</div>
+      <div class="lbl">Categories</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ── Alerts Section ──────────────────────────────────────────────────── -->
+  
+  <section>
+    <h2>🚨 Alerts – Immediate Attention Required</h2>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">AI-Enhanced Scrum Practices <span class="badge badge-alert">ALERT</span></div>
+          <div class="trend-desc">AI tools, particularly Large Language Models (LLMs), are increasingly integrated into Scrum practices to automate tasks such as sprint planning, backlog grooming, and team flow management. These tools enhance efficiency while maintaining core Scrum principles, offering significant productivity gains for Scrum Masters and teams.</div>
+          <div class="trend-meta">
+            Category: Agile &amp; Scrum &nbsp;|&nbsp;
+            Articles: 10 &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🤖</div>
+        <div class="trend-body">
+          <div class="trend-name">Generative AI in Agile Software Development <span class="badge badge-alert">ALERT</span></div>
+          <div class="trend-desc">Generative AI is being leveraged to improve productivity and quality in agile software development. By automating routine tasks and enhancing decision-making processes, AI tools are transforming how agile teams manage projects, leading to more efficient and effective development cycles.</div>
+          <div class="trend-meta">
+            Category: AI for PM &nbsp;|&nbsp;
+            Articles: 5 &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">Remote and Hybrid Scrum Adaptations <span class="badge badge-alert">ALERT</span></div>
+          <div class="trend-desc">The adaptation of Scrum practices for remote and hybrid work environments is crucial as teams continue to navigate post-pandemic work settings. Adjustments in communication and collaboration tools are necessary to maintain productivity and team cohesion in these flexible work arrangements.</div>
+          <div class="trend-meta">
+            Category: Agile &amp; Scrum &nbsp;|&nbsp;
+            Articles: 2 &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🗂️</div>
+        <div class="trend-body">
+          <div class="trend-name">Technical Debt Management in Agile Teams <span class="badge badge-alert">ALERT</span></div>
+          <div class="trend-desc">Managing technical debt is becoming a critical focus for agile teams, particularly in multidisciplinary and data-intensive environments. Effective technical debt management processes are essential to maintain software quality and prevent long-term project risks.</div>
+          <div class="trend-meta">
+            Category: Program Management &nbsp;|&nbsp;
+            Articles: 2 &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">הטמעת AI בצוותי Scrum <span class="badge badge-alert">ALERT</span></div>
+          <div class="trend-desc">כלים מבוססי AI, במיוחד מודלים של שפה גדולה (LLMs), משנים את האופן שבו צוותי Scrum פועלים, תוך שמירה על עקרונות הליבה של המתודולוגיה. השימוש ב-AI מייעל תהליכים כמו תכנון ספרינט, ניהול backlog, והערכת סיפורים, ומאפשר לצוותים להתמקד במשימות בעלות ערך גבוה יותר.</div>
+          <div class="trend-meta">
+            Category: Agile &amp; Scrum &nbsp;|&nbsp;
+            Articles: 11 &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🗂️</div>
+        <div class="trend-body">
+          <div class="trend-name">שילוב AI בתפקידי מנהלי מוצר ובעלי מוצר <span class="badge badge-alert">ALERT</span></div>
+          <div class="trend-desc">AI מספק כלים חדשניים למנהלי מוצר ובעלי מוצר, המאפשרים להם לנהל טוב יותר את מחזור חיי המוצר, לשפר את תהליכי קבלת ההחלטות ולהגביר את היעילות. כלים אלו מסייעים במעקב אחר מדדי הצלחה, ניתוח שוק, ותכנון אסטרטגי.</div>
+          <div class="trend-meta">
+            Category: Program Management &nbsp;|&nbsp;
+            Articles: 2 &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </section>
+  
+
+  <!-- ── Top 10 Articles ─────────────────────────────────────────────────── -->
+  <section>
+    <h2>⭐ Top 10 Articles This Period</h2>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/xavisavvy/scrum-monsters" target="_blank" rel="noopener">xavisavvy/scrum-monsters</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#059669;">★★★★☆</span>
+          <span class="score-num" style="background:#059669;">84</span>
+        </span>
+        <span class="badge badge-cat">🔄 Agile &amp; Scrum</span>
+        
+        <span>08 Mar 2026 11:28 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">המאגר &#39;scrum-monsters&#39; מציע משחק רשת קליל שמטרתו להפוך את תהליך תכנון הספרינט והערכת הסיפורים לפעילות מהנה ומהירה. המשחק משלב אלמנטים של פיתוח משחקים עם מתודולוגיות אג&#39;יליות כמו סקרום ופוקר סקרום, ומאפשר לצוותים להקצות נקודות סיפור תוך כדי מאבק בבוסים פיקסליים שובבים. המערכת כתובה ב-TypeScript ומיועדת לשיפור תהליכי פיתוח תוכנה.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• שלבו את &#39;scrum-monsters&#39; בתהליך תכנון הספרינט כדי להגביר את המעורבות וההנאה של הצוות.</div>
+        
+        <div class="insight-item">• השתמשו במשחק כדי להקל על תהליך הערכת הסיפורים ולהפוך אותו למהיר ויעיל יותר.</div>
+        
+        <div class="insight-item">• נצל את האלמנטים המשחקיים כדי לשפר את שיתוף הפעולה והתקשורת בין חברי הצוות.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> למנהלי פרויקטים בחברות טכנולוגיה, שילוב כלים כמו &#39;scrum-monsters&#39; יכול לשפר את תהליך תכנון הספרינט והערכת הסיפורים, מה שמוביל להגברת המעורבות והמורל של הצוות. זה חשוב במיוחד בניהול צוותים אג&#39;יליים, שם שיתוף פעולה ותקשורת אפקטיבית הם קריטיים להצלחת הפרויקט.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://scaledagile.com/blog/managing-balanced-portfolio-strategy/" target="_blank" rel="noopener">Escaping the Urgent: Why Immediate Demands Are Killing Your Future Growth</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★★☆</span>
+          <span class="score-num" style="background:#d97706;">78</span>
+        </span>
+        <span class="badge badge-cat">🗂️ Program Management</span>
+        
+        <span>07 Jan 2026 23:04 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The article discusses the detrimental impact of prioritizing immediate demands over strategic, long-term initiatives in a company&#39;s portfolio. This imbalance leads to innovation starvation, legacy system maintenance, and economic sub-optimization, ultimately eroding competitive advantage. The piece suggests that focusing too heavily on urgent tasks can prevent meaningful progress on future-proofing initiatives, risking the company&#39;s long-term growth and sustainability.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Balance your portfolio by allocating resources to both immediate demands and strategic initiatives to ensure long-term growth.</div>
+        
+        <div class="insight-item">• Implement a strategy for retiring legacy systems to free up budget and resources for innovation.</div>
+        
+        <div class="insight-item">• Prioritize strategic initiatives by setting clear boundaries on urgent requests to avoid economic sub-optimization.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> For a Project/Program Manager in a high-tech company, balancing immediate demands with strategic initiatives is crucial for sustainable growth. Effective resource allocation and prioritization ensure that both current operations and future innovations are adequately supported. This balance is key to maintaining competitive advantage and achieving long-term strategic goals, making it essential for successful project delivery and stakeholder satisfaction.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://arxiv.org/abs/2512.18966v1" target="_blank" rel="noopener">Scrum Sprint Planning: LLM-based and algorithmic solutions</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★★☆</span>
+          <span class="score-num" style="background:#d97706;">73</span>
+        </span>
+        <span class="badge badge-cat">🔄 Agile &amp; Scrum</span>
+        
+        <span>22 Dec 2025 02:26 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The paper explores the use of Large Language Models (LLMs) to enhance Scrum sprint planning. The authors conducted case studies using manually created datasets to test the applicability of OpenAI models like GPT-3.5 Turbo, GPT-4.0 Turbo, and Val in supporting sprint planning activities. The experiments revealed that the current output quality of these models is not yet suitable for direct implementation in Scrum projects.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Current LLMs, such as GPT-3.5 and GPT-4.0, are not yet reliable enough for direct application in Scrum sprint planning.</div>
+        
+        <div class="insight-item">• Manual data preparation is crucial when testing AI tools in agile processes to ensure relevant and accurate results.</div>
+        
+        <div class="insight-item">• Continuous evaluation and iteration are necessary when integrating AI solutions into project management workflows.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> For Project/Program Managers in high-tech companies, understanding the limitations and potential of AI tools in sprint planning is crucial for process optimization. This research highlights the importance of careful evaluation and adaptation of new technologies to enhance team performance and project delivery. It also underscores the need for strategic planning when considering AI integration into agile methodologies.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://scaledagile.com/blog/enabling-agility-enterprise-architecture/" target="_blank" rel="noopener">Building on Quicksand: When Tech Chaos Stalls Innovation</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★★☆</span>
+          <span class="score-num" style="background:#d97706;">71</span>
+        </span>
+        <span class="badge badge-cat">🗂️ Program Management</span>
+        
+        <span>21 Jan 2026 12:44 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The blog post discusses the challenges faced by organizations when their technology infrastructure is misaligned with their business strategy. It highlights the issues of innovation stagnation, erosion of trust, and compounding technical debt due to architectural inconsistency. The article suggests that enabling agility through better alignment of technology choices with business goals can mitigate these problems.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Align technology choices with business strategy to prevent innovation stagnation and reduce technical debt.</div>
+        
+        <div class="insight-item">• Improve cross-team communication to avoid redundant efforts and ensure teams are aware of existing solutions.</div>
+        
+        <div class="insight-item">• Focus on creating a unified technology architecture to enhance the customer experience and build trust.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> For Project and Program Managers in high-tech companies, aligning technology with business strategy is crucial for efficient project delivery and innovation. Misalignment can lead to increased technical debt and resource wastage, impacting timelines and stakeholder satisfaction. Effective communication and strategic planning are essential to ensure that engineering efforts support broader business objectives.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://arxiv.org/abs/2602.08192v1" target="_blank" rel="noopener">Adoption of Large Language Models in Scrum Management: Insights from Brazilian Practitioners</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★☆☆</span>
+          <span class="score-num" style="background:#d97706;">68</span>
+        </span>
+        <span class="badge badge-cat">🔄 Agile &amp; Scrum</span>
+        
+        <span>09 Feb 2026 01:21 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The study explores the integration of Large Language Models (LLMs) in Scrum management among Brazilian practitioners. It reveals that LLMs are primarily used to enhance productivity and reduce manual effort in Scrum practices, with a high proficiency among users. However, challenges such as &#39;almost correct&#39; outputs, confidentiality concerns, and hallucinations pose risks. The research provides empirical insights into the benefits and risks of LLM adoption in Scrum, highlighting the need for responsible integration in Agile environments.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Leverage LLMs to increase productivity and reduce manual effort in Scrum by automating repetitive tasks and enhancing decision-making processes.</div>
+        
+        <div class="insight-item">• Address and mitigate risks associated with LLMs, such as &#39;almost correct&#39; outputs and hallucinations, by implementing robust validation and review processes.</div>
+        
+        <div class="insight-item">• Develop guidelines and training for responsible LLM use in Scrum to ensure data confidentiality and maximize the benefits of AI integration.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> For Project/Program Managers in high-tech companies, understanding the integration of LLMs in Scrum can lead to more efficient project delivery by automating knowledge-intensive tasks. This knowledge is crucial for managing team performance and ensuring strategic alignment while addressing potential risks associated with AI tools. Additionally, it aids in stakeholder communication by providing insights into the benefits and challenges of adopting cutting-edge technologies in Agile practices.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/sprintermate/sprintermate" target="_blank" rel="noopener">sprintermate/sprintermate</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★☆☆</span>
+          <span class="score-num" style="background:#d97706;">67</span>
+        </span>
+        <span class="badge badge-cat">🔄 Agile &amp; Scrum</span>
+        
+        <span>08 Mar 2026 11:28 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">המאגר sprintermate מציע כלי לתכנון פוקר בזמן אמת עם הערכת נקודות סיפור מבוססת AI ואינטגרציה עם Azure DevOps. המאגר כתוב ב-TypeScript ומתמקד בנושאים כמו אג&#39;ייל וכלים מבוססי AI.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• שקול לשלב את sprintermate בתהליך התכנון שלך כדי לשפר את דיוק הערכות נקודות הסיפור באמצעות AI.</div>
+        
+        <div class="insight-item">• נצל את האינטגרציה עם Azure DevOps כדי לייעל את ניהול המשימות והסנכרון בין צוותים.</div>
+        
+        <div class="insight-item">• השתמש בכלי זה כדי לשפר את שיתוף הפעולה והתקשורת בצוות במהלך פגישות תכנון פוקר.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> למנהלי פרויקטים בתעשיית ההייטק, כלי זה יכול לשפר את דיוק התכנון והערכת המשימות, מה שמוביל לשיפור בתכנון סבבים ובניהול משאבים. האינטגרציה עם Azure DevOps מספקת ערך נוסף על ידי ייעול התהליכים ושיפור התקשורת עם בעלי עניין וצוותים טכניים.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://arxiv.org/abs/2602.13766v1" target="_blank" rel="noopener">Impacts of Generative AI on Agile Teams&#39; Productivity: A Multi-Case Longitudinal Study</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★☆☆</span>
+          <span class="score-num" style="background:#d97706;">64</span>
+        </span>
+        <span class="badge badge-cat">🔄 Agile &amp; Scrum</span>
+        
+        <span>14 Feb 2026 13:26 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The study explores the long-term impact of Generative AI tools on agile software teams&#39; productivity using the SPACE framework. Conducted over 13 months with three agile teams, it combines quantitative and qualitative data to assess changes in performance, efficiency, and activity levels. The findings reveal that while developer activity remains constant, performance and perceived efficiency significantly increase, indicating that GenAI enhances the value density of work rather than its volume.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Implement GenAI tools to boost team performance and efficiency without increasing workload.</div>
+        
+        <div class="insight-item">• Use multi-dimensional frameworks like SPACE to assess productivity impacts comprehensively.</div>
+        
+        <div class="insight-item">• Focus on value density of work rather than sheer volume to measure team success post-GenAI adoption.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> For Project/Program Managers in high-tech companies, understanding the nuanced impacts of GenAI on team productivity is crucial for strategic planning and resource allocation. This study highlights the importance of using comprehensive frameworks to evaluate productivity, ensuring that improvements in efficiency and performance are accurately captured and leveraged for better project delivery and stakeholder communication.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://www.scrum.org/resources/blog/how-scrum-masters-should-start-their-ai-journey" target="_blank" rel="noopener">How Scrum Masters Should Start Their AI Journey</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★☆☆</span>
+          <span class="score-num" style="background:#d97706;">61</span>
+        </span>
+        <span class="badge badge-cat">🔄 Agile &amp; Scrum</span>
+        
+        <span>02 Mar 2026 14:52 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The article from Scrum.org discusses how Scrum Masters can begin integrating AI into their roles, emphasizing the importance of viewing AI as a collaborative partner rather than just a tool. It outlines the role of a Scrum Master as akin to an orchestra conductor, responsible for the effectiveness of the Scrum team. The content differentiates between superficial and professional Scrum, advocating for AI literacy in two areas: AI Fundamentals and AI for Scrum Mastery.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• View AI as a collaborative partner to enhance Scrum team effectiveness, not just as a tool.</div>
+        
+        <div class="insight-item">• Develop AI literacy in two key areas: understanding AI fundamentals and applying AI for Scrum Mastery.</div>
+        
+        <div class="insight-item">• Aim for Professional Scrum by leveraging AI to address deeper, more complex elements of Scrum beyond the superficial level.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> For a Project/Program Manager in a high-tech company, integrating AI into Scrum practices can significantly enhance team productivity and project outcomes. Understanding AI&#39;s role in professional Scrum can lead to more effective team management and strategic planning, ensuring that projects are delivered with higher quality and efficiency. Additionally, AI literacy can improve stakeholder communication by providing data-driven insights and fostering innovation within teams.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/zemoma/ai-agile-coach-scrum" target="_blank" rel="noopener">zemoma/ai-agile-coach-scrum</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">57</span>
+        </span>
+        <span class="badge badge-cat">🔄 Agile &amp; Scrum</span>
+        
+        <span>08 Mar 2026 09:23 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The &#39;zemoma/ai-agile-coach-scrum&#39; GitHub repository offers an AI-driven web application designed to help students and teams enhance their Scrum practices. The app leverages generative AI and language models to provide interactive guidance on Agile methodologies. It is built using TypeScript and includes various technologies like microservices and MySQL, aiming to transform Agile skills through AI-enhanced learning experiences.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Utilize AI-driven tools to facilitate interactive learning and mastery of Scrum practices for teams.</div>
+        
+        <div class="insight-item">• Incorporate generative AI and language models to provide real-time, adaptive coaching in Agile methodologies.</div>
+        
+        <div class="insight-item">• Leverage TypeScript and microservices architecture to build scalable and efficient Agile coaching applications.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> This repository is relevant to Project/Program Managers in high-tech companies as it provides tools to enhance team performance and Agile practice mastery. By integrating AI-driven coaching, PMs can improve team agility and adaptability, crucial for successful project delivery. Additionally, understanding and utilizing such technologies can aid in strategic planning and stakeholder communication by showcasing commitment to cutting-edge methodologies.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/t1k2a/claude-hurikaeri" target="_blank" rel="noopener">t1k2a/claude-hurikaeri</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">57</span>
+        </span>
+        <span class="badge badge-cat">🔄 Agile &amp; Scrum</span>
+        
+        <span>08 Mar 2026 09:23 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The GitHub repository &#39;claude-hurikaeri&#39; focuses on automating daily standup meetings using Claude Code, a tool designed to collect and analyze work status from GitHub activities. It is written in JavaScript and emphasizes agile practices, particularly Scrum, to enhance team productivity and workflow management. The repository aims to streamline daily standups by integrating automation into the process.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Automate daily standup meetings by integrating GitHub activity data with Claude Code to save time and increase accuracy.</div>
+        
+        <div class="insight-item">• Leverage JavaScript-based tools to enhance productivity and streamline workflow management in Scrum practices.</div>
+        
+        <div class="insight-item">• Utilize automation to consistently track and report work status, improving transparency and accountability in agile teams.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> For a Project/Program Manager in a high-tech company, automating daily standups can significantly reduce administrative overhead and improve the accuracy of status reporting. This enhances team efficiency and ensures that stakeholders are consistently informed about project progress. Additionally, integrating such tools can support strategic planning by providing real-time insights into team performance and workflow bottlenecks.
+      </div>
+      
+    </div>
+    
+  </section>
+
+  <!-- ── REQ-06: Thematic Sections with Central Idea ─────────────────────── -->
+  
+
+  <!-- ── Articles by Category ────────────────────────────────────────────── -->
+  <section>
+    <h2>📂 All Articles by Category</h2>
+    
+    <div class="category-header">
+      <span class="category-icon">🔄</span>
+      <span class="category-title">Agile &amp; Scrum</span>
+      <span class="category-count">(10 articles)</span>
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/xavisavvy/scrum-monsters" target="_blank" rel="noopener">xavisavvy/scrum-monsters</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#059669;">★★★★☆</span>
+          <span class="score-num" style="background:#059669;">84</span>
+        </span>
+        <span>08 Mar 2026 11:28 UTC</span>
+      </div>
+      <div class="article-summary">המאגר &#39;scrum-monsters&#39; מציע משחק רשת קליל שמטרתו להפוך את תהליך תכנון הספרינט והערכת הסיפורים לפעילות מהנה ומהירה. המשחק משלב אלמנטים של פיתוח משחקים עם מתודולוגיות אג&#39;יליות כמו סקרום ופוקר סקרום, ומאפשר לצוותים להקצות נקודות סיפור תוך כדי מאבק בבוסים פיקסליים שובבים. המערכת כתובה ב-TypeScript ומיועדת לשיפור תהליכי פיתוח תוכנה.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> למנהלי פרויקטים בחברות טכנולוגיה, שילוב כלים כמו &#39;scrum-monsters&#39; יכול לשפר את תהליך תכנון הספרינט והערכת הסיפורים, מה שמוביל להגברת המעורבות והמורל של הצוות. זה חשוב במיוחד בניהול צוותים אג&#39;יליים, שם שיתוף פעולה ותקשורת אפקטיבית הם קריטיים להצלחת הפרויקט.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://arxiv.org/abs/2512.18966v1" target="_blank" rel="noopener">Scrum Sprint Planning: LLM-based and algorithmic solutions</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★★☆</span>
+          <span class="score-num" style="background:#d97706;">73</span>
+        </span>
+        <span>22 Dec 2025 02:26 UTC</span>
+      </div>
+      <div class="article-summary">The paper explores the use of Large Language Models (LLMs) to enhance Scrum sprint planning. The authors conducted case studies using manually created datasets to test the applicability of OpenAI models like GPT-3.5 Turbo, GPT-4.0 Turbo, and Val in supporting sprint planning activities. The experiments revealed that the current output quality of these models is not yet suitable for direct implementation in Scrum projects.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> For Project/Program Managers in high-tech companies, understanding the limitations and potential of AI tools in sprint planning is crucial for process optimization. This research highlights the importance of careful evaluation and adaptation of new technologies to enhance team performance and project delivery. It also underscores the need for strategic planning when considering AI integration into agile methodologies.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://arxiv.org/abs/2602.08192v1" target="_blank" rel="noopener">Adoption of Large Language Models in Scrum Management: Insights from Brazilian Practitioners</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★☆☆</span>
+          <span class="score-num" style="background:#d97706;">68</span>
+        </span>
+        <span>09 Feb 2026 01:21 UTC</span>
+      </div>
+      <div class="article-summary">The study explores the integration of Large Language Models (LLMs) in Scrum management among Brazilian practitioners. It reveals that LLMs are primarily used to enhance productivity and reduce manual effort in Scrum practices, with a high proficiency among users. However, challenges such as &#39;almost correct&#39; outputs, confidentiality concerns, and hallucinations pose risks. The research provides empirical insights into the benefits and risks of LLM adoption in Scrum, highlighting the need for responsible integration in Agile environments.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> For Project/Program Managers in high-tech companies, understanding the integration of LLMs in Scrum can lead to more efficient project delivery by automating knowledge-intensive tasks. This knowledge is crucial for managing team performance and ensuring strategic alignment while addressing potential risks associated with AI tools. Additionally, it aids in stakeholder communication by providing insights into the benefits and challenges of adopting cutting-edge technologies in Agile practices.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/sprintermate/sprintermate" target="_blank" rel="noopener">sprintermate/sprintermate</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★☆☆</span>
+          <span class="score-num" style="background:#d97706;">67</span>
+        </span>
+        <span>08 Mar 2026 11:28 UTC</span>
+      </div>
+      <div class="article-summary">המאגר sprintermate מציע כלי לתכנון פוקר בזמן אמת עם הערכת נקודות סיפור מבוססת AI ואינטגרציה עם Azure DevOps. המאגר כתוב ב-TypeScript ומתמקד בנושאים כמו אג&#39;ייל וכלים מבוססי AI.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> למנהלי פרויקטים בתעשיית ההייטק, כלי זה יכול לשפר את דיוק התכנון והערכת המשימות, מה שמוביל לשיפור בתכנון סבבים ובניהול משאבים. האינטגרציה עם Azure DevOps מספקת ערך נוסף על ידי ייעול התהליכים ושיפור התקשורת עם בעלי עניין וצוותים טכניים.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://arxiv.org/abs/2602.13766v1" target="_blank" rel="noopener">Impacts of Generative AI on Agile Teams&#39; Productivity: A Multi-Case Longitudinal Study</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★☆☆</span>
+          <span class="score-num" style="background:#d97706;">64</span>
+        </span>
+        <span>14 Feb 2026 13:26 UTC</span>
+      </div>
+      <div class="article-summary">The study explores the long-term impact of Generative AI tools on agile software teams&#39; productivity using the SPACE framework. Conducted over 13 months with three agile teams, it combines quantitative and qualitative data to assess changes in performance, efficiency, and activity levels. The findings reveal that while developer activity remains constant, performance and perceived efficiency significantly increase, indicating that GenAI enhances the value density of work rather than its volume.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> For Project/Program Managers in high-tech companies, understanding the nuanced impacts of GenAI on team productivity is crucial for strategic planning and resource allocation. This study highlights the importance of using comprehensive frameworks to evaluate productivity, ensuring that improvements in efficiency and performance are accurately captured and leveraged for better project delivery and stakeholder communication.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://www.scrum.org/resources/blog/how-scrum-masters-should-start-their-ai-journey" target="_blank" rel="noopener">How Scrum Masters Should Start Their AI Journey</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★☆☆</span>
+          <span class="score-num" style="background:#d97706;">61</span>
+        </span>
+        <span>02 Mar 2026 14:52 UTC</span>
+      </div>
+      <div class="article-summary">The article from Scrum.org discusses how Scrum Masters can begin integrating AI into their roles, emphasizing the importance of viewing AI as a collaborative partner rather than just a tool. It outlines the role of a Scrum Master as akin to an orchestra conductor, responsible for the effectiveness of the Scrum team. The content differentiates between superficial and professional Scrum, advocating for AI literacy in two areas: AI Fundamentals and AI for Scrum Mastery.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> For a Project/Program Manager in a high-tech company, integrating AI into Scrum practices can significantly enhance team productivity and project outcomes. Understanding AI&#39;s role in professional Scrum can lead to more effective team management and strategic planning, ensuring that projects are delivered with higher quality and efficiency. Additionally, AI literacy can improve stakeholder communication by providing data-driven insights and fostering innovation within teams.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/zemoma/ai-agile-coach-scrum" target="_blank" rel="noopener">zemoma/ai-agile-coach-scrum</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">57</span>
+        </span>
+        <span>08 Mar 2026 09:23 UTC</span>
+      </div>
+      <div class="article-summary">The &#39;zemoma/ai-agile-coach-scrum&#39; GitHub repository offers an AI-driven web application designed to help students and teams enhance their Scrum practices. The app leverages generative AI and language models to provide interactive guidance on Agile methodologies. It is built using TypeScript and includes various technologies like microservices and MySQL, aiming to transform Agile skills through AI-enhanced learning experiences.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> This repository is relevant to Project/Program Managers in high-tech companies as it provides tools to enhance team performance and Agile practice mastery. By integrating AI-driven coaching, PMs can improve team agility and adaptability, crucial for successful project delivery. Additionally, understanding and utilizing such technologies can aid in strategic planning and stakeholder communication by showcasing commitment to cutting-edge methodologies.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/t1k2a/claude-hurikaeri" target="_blank" rel="noopener">t1k2a/claude-hurikaeri</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">57</span>
+        </span>
+        <span>08 Mar 2026 09:23 UTC</span>
+      </div>
+      <div class="article-summary">The GitHub repository &#39;claude-hurikaeri&#39; focuses on automating daily standup meetings using Claude Code, a tool designed to collect and analyze work status from GitHub activities. It is written in JavaScript and emphasizes agile practices, particularly Scrum, to enhance team productivity and workflow management. The repository aims to streamline daily standups by integrating automation into the process.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> For a Project/Program Manager in a high-tech company, automating daily standups can significantly reduce administrative overhead and improve the accuracy of status reporting. This enhances team efficiency and ensures that stakeholders are consistently informed about project progress. Additionally, integrating such tools can support strategic planning by providing real-time insights into team performance and workflow bottlenecks.
+      </div>
+      
+    </div>
+    
+    
+    <div class="category-header">
+      <span class="category-icon">🗂️</span>
+      <span class="category-title">Program Management</span>
+      <span class="category-count">(3 articles)</span>
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://scaledagile.com/blog/managing-balanced-portfolio-strategy/" target="_blank" rel="noopener">Escaping the Urgent: Why Immediate Demands Are Killing Your Future Growth</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★★☆</span>
+          <span class="score-num" style="background:#d97706;">78</span>
+        </span>
+        <span>07 Jan 2026 23:04 UTC</span>
+      </div>
+      <div class="article-summary">The article discusses the detrimental impact of prioritizing immediate demands over strategic, long-term initiatives in a company&#39;s portfolio. This imbalance leads to innovation starvation, legacy system maintenance, and economic sub-optimization, ultimately eroding competitive advantage. The piece suggests that focusing too heavily on urgent tasks can prevent meaningful progress on future-proofing initiatives, risking the company&#39;s long-term growth and sustainability.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> For a Project/Program Manager in a high-tech company, balancing immediate demands with strategic initiatives is crucial for sustainable growth. Effective resource allocation and prioritization ensure that both current operations and future innovations are adequately supported. This balance is key to maintaining competitive advantage and achieving long-term strategic goals, making it essential for successful project delivery and stakeholder satisfaction.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://scaledagile.com/blog/enabling-agility-enterprise-architecture/" target="_blank" rel="noopener">Building on Quicksand: When Tech Chaos Stalls Innovation</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★★☆</span>
+          <span class="score-num" style="background:#d97706;">71</span>
+        </span>
+        <span>21 Jan 2026 12:44 UTC</span>
+      </div>
+      <div class="article-summary">The blog post discusses the challenges faced by organizations when their technology infrastructure is misaligned with their business strategy. It highlights the issues of innovation stagnation, erosion of trust, and compounding technical debt due to architectural inconsistency. The article suggests that enabling agility through better alignment of technology choices with business goals can mitigate these problems.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> For Project and Program Managers in high-tech companies, aligning technology with business strategy is crucial for efficient project delivery and innovation. Misalignment can lead to increased technical debt and resource wastage, impacting timelines and stakeholder satisfaction. Effective communication and strategic planning are essential to ensure that engineering efforts support broader business objectives.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://arxiv.org/abs/2603.03085v1" target="_blank" rel="noopener">A Practical Guide for Establishing a Technical Debt Management Process (Preprint)</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">57</span>
+        </span>
+        <span>03 Mar 2026 15:28 UTC</span>
+      </div>
+      <div class="article-summary">The paper discusses the importance of managing Technical Debt (TD) in software development and outlines a process for establishing a Technical Debt Management (TDM) system. Through action research involving workshops with two different teams, the study identifies feasible TDM approaches and common challenges faced during implementation. The research highlights the use of backlogs for TD management, with teams adopting similar attributes for TD items but differing in prioritization and repayment methods. The paper concludes with best practices and suggests enhancements for issue tracking systems to better support TDM.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> Effective Technical Debt Management is crucial for maintaining software quality and facilitating future development. For Project/Program Managers, implementing a structured TDM process can improve project delivery by reducing unforeseen delays caused by unresolved TD. Additionally, aligning teams on TD documentation and prioritization enhances team performance and stakeholder communication, ensuring that technical risks are managed proactively.
+      </div>
+      
+    </div>
+    
+    
+    <div class="category-header">
+      <span class="category-icon">📋</span>
+      <span class="category-title">Project Management</span>
+      <span class="category-count">(1 articles)</span>
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/niksavis/burndown-chart" target="_blank" rel="noopener">niksavis/burndown-chart</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">57</span>
+        </span>
+        <span>08 Mar 2026 11:28 UTC</span>
+      </div>
+      <div class="article-summary">המאגר &#39;niksavis/burndown-chart&#39; הוא אפליקציה אינטראקטיבית שמסייעת במעקב אחר התקדמות פרויקטים ובחיזוי תאריכי סיום באמצעות גרפים ומדדים. המאגר כתוב בשפת Python ומתמקד בנושאים כמו אג&#39;ייל, דורה, זרימה, חיזוי וניהול פרויקטים.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> כלי זה חשוב למנהלי פרויקטים בחברות הייטק מכיוון שהוא מספק יכולות חיזוי ושקיפות בפרויקטים, מה שמסייע בשיפור התקשורת עם בעלי עניין ובתכנון אסטרטגי. בנוסף, הוא תומך בתהליכי אג&#39;ייל ומאפשר מעקב מדויק אחר התקדמות הצוות והפרויקט.
+      </div>
+      
+    </div>
+    
+    
+    <div class="category-header">
+      <span class="category-icon">🛠️</span>
+      <span class="category-title">PM Tools</span>
+      <span class="category-count">(1 articles)</span>
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://thenewstack.io/unleash-feature-management-funding/" target="_blank" rel="noopener">Unleash raises $35M, launches Impact Metrics to govern feature rollouts at AI speed</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">54</span>
+        </span>
+        <span>04 Mar 2026 14:00 UTC</span>
+      </div>
+      <div class="article-summary">Unleash has secured $35 million in funding and launched Impact Metrics to enhance feature management in the context of AI-driven development. The company provides a control layer for software releases, allowing teams to manage feature rollouts with precision using feature flags. This approach helps balance the increased speed of AI-assisted development with the need for stability and control in production environments.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> For Project/Program Managers in high-tech companies, understanding and implementing feature management tools like Unleash is crucial for balancing rapid development cycles with stable software delivery. These tools enable precise control over feature rollouts, which is essential for managing stakeholder expectations and ensuring high-quality product releases. Additionally, leveraging AI tools to enhance development speed must be matched with strategic planning to avoid long-term complexity and maintain a scalable product architecture.
+      </div>
+      
+    </div>
+    
+    
+  </section>
+
+  <!-- ── Trend Landscape ─────────────────────────────────────────────────── -->
+  <section>
+    <h2>📈 Trend Landscape</h2>
+    
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            AI-Enhanced Scrum Practices
+            <span class="badge badge-alert">ALERT</span>
+            <span class="badge badge-trend">Agile &amp; Scrum</span>
+          </div>
+          <div class="trend-desc">AI tools, particularly Large Language Models (LLMs), are increasingly integrated into Scrum practices to automate tasks such as sprint planning, backlog grooming, and team flow management. These tools enhance efficiency while maintaining core Scrum principles, offering significant productivity gains for Scrum Masters and teams.</div>
+          <div class="trend-meta">
+            Articles: 10 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 09:29 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🤖</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            Generative AI in Agile Software Development
+            <span class="badge badge-alert">ALERT</span>
+            <span class="badge badge-trend">AI for PM</span>
+          </div>
+          <div class="trend-desc">Generative AI is being leveraged to improve productivity and quality in agile software development. By automating routine tasks and enhancing decision-making processes, AI tools are transforming how agile teams manage projects, leading to more efficient and effective development cycles.</div>
+          <div class="trend-meta">
+            Articles: 5 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 09:29 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card ">
+      <div class="trend-card">
+        <div class="trend-icon">🧭</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            Strategic Integration of OKRs and KPIs
+            
+            <span class="badge badge-trend">Strategy &amp; OKRs</span>
+          </div>
+          <div class="trend-desc">The integration of Objectives and Key Results (OKRs) with Key Performance Indicators (KPIs) is becoming a strategic priority for product success. This cohesive framework helps align team efforts with organizational goals, ensuring that strategic planning is both actionable and measurable.</div>
+          <div class="trend-meta">
+            Articles: 3 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 09:29 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            Remote and Hybrid Scrum Adaptations
+            <span class="badge badge-alert">ALERT</span>
+            <span class="badge badge-trend">Agile &amp; Scrum</span>
+          </div>
+          <div class="trend-desc">The adaptation of Scrum practices for remote and hybrid work environments is crucial as teams continue to navigate post-pandemic work settings. Adjustments in communication and collaboration tools are necessary to maintain productivity and team cohesion in these flexible work arrangements.</div>
+          <div class="trend-meta">
+            Articles: 2 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 09:29 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🗂️</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            Technical Debt Management in Agile Teams
+            <span class="badge badge-alert">ALERT</span>
+            <span class="badge badge-trend">Program Management</span>
+          </div>
+          <div class="trend-desc">Managing technical debt is becoming a critical focus for agile teams, particularly in multidisciplinary and data-intensive environments. Effective technical debt management processes are essential to maintain software quality and prevent long-term project risks.</div>
+          <div class="trend-meta">
+            Articles: 2 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 09:29 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            הטמעת AI בצוותי Scrum
+            <span class="badge badge-alert">ALERT</span>
+            <span class="badge badge-trend">Agile &amp; Scrum</span>
+          </div>
+          <div class="trend-desc">כלים מבוססי AI, במיוחד מודלים של שפה גדולה (LLMs), משנים את האופן שבו צוותי Scrum פועלים, תוך שמירה על עקרונות הליבה של המתודולוגיה. השימוש ב-AI מייעל תהליכים כמו תכנון ספרינט, ניהול backlog, והערכת סיפורים, ומאפשר לצוותים להתמקד במשימות בעלות ערך גבוה יותר.</div>
+          <div class="trend-meta">
+            Articles: 11 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 11:33 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🗂️</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            שילוב AI בתפקידי מנהלי מוצר ובעלי מוצר
+            <span class="badge badge-alert">ALERT</span>
+            <span class="badge badge-trend">Program Management</span>
+          </div>
+          <div class="trend-desc">AI מספק כלים חדשניים למנהלי מוצר ובעלי מוצר, המאפשרים להם לנהל טוב יותר את מחזור חיי המוצר, לשפר את תהליכי קבלת ההחלטות ולהגביר את היעילות. כלים אלו מסייעים במעקב אחר מדדי הצלחה, ניתוח שוק, ותכנון אסטרטגי.</div>
+          <div class="trend-meta">
+            Articles: 2 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 11:33 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card ">
+      <div class="trend-card">
+        <div class="trend-icon">🧭</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            ניהול צוותים עצמאיים במתודולוגיות אג&#39;יליות
+            
+            <span class="badge badge-trend">Strategy &amp; OKRs</span>
+          </div>
+          <div class="trend-desc">המחקרים מראים מגמה של מעבר לצוותים עצמאיים במתודולוגיות אג&#39;יליות, שבהם ההנהגה והחלטות מתקבלות בצורה מבוזרת. מגמה זו עשויה להוביל לשיפור במוטיבציה ובמעורבות הצוותים, אך דורשת התאמות בתהליכי הניהול והפיקוח.</div>
+          <div class="trend-meta">
+            Articles: 2 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 11:33 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card ">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            שילוב EVM בניהול סיכונים בפרויקטים אג&#39;יליים
+            
+            <span class="badge badge-trend">Agile &amp; Scrum</span>
+          </div>
+          <div class="trend-desc">ניהול ערך נצבר (EVM) משולב יותר ויותר במתודולוגיות אג&#39;יליות לניהול סיכונים. שילוב זה מאפשר למנהלי פרויקטים לעקוב אחר התקדמות הפרויקט בצורה מדויקת יותר ולחזות בעיות פוטנציאליות מוקדם יותר בתהליך.</div>
+          <div class="trend-meta">
+            Articles: 1 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 11:33 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card ">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            שינוי במבנה תפקידי Product Operations
+            
+            <span class="badge badge-trend">Agile &amp; Scrum</span>
+          </div>
+          <div class="trend-desc">תפקידי Product Operations עוברים שינוי ומתרכזים יותר בעיצוב תשתיות קבלת החלטות ובשיפור המהירות והאיכות של תהליכי קבלת החלטות. מגמה זו משפרת את היכולת של ארגונים להגיב לשינויים בשוק ולשפר את ביצועי המוצר.</div>
+          <div class="trend-meta">
+            Articles: 1 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 11:33 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    
+  </section>
+
+</div>
+
+<div class="footer">
+  PM Intelligence Agent &nbsp;|&nbsp; Generated automatically &nbsp;|&nbsp; 08 Mar 2026 11:33 UTC
+</div>
+
+</body>
+</html>
