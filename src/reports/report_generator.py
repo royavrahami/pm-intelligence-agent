@@ -18,8 +18,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+import openai
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from src.config.settings import settings
 from src.storage.models import Article, Trend
 
 logger = logging.getLogger(__name__)
@@ -57,20 +59,41 @@ class ReportGenerator:
         self._jinja_env.filters["category_label"] = lambda c: _CATEGORY_META.get(c, {}).get("label", c)
         self._jinja_env.filters["category_icon"] = lambda c: _CATEGORY_META.get(c, {}).get("icon", "📄")
         self._jinja_env.filters["format_dt"] = lambda dt: dt.strftime("%d %b %Y %H:%M UTC") if dt else "N/A"
+        self._jinja_env.filters["score_stars"] = self._score_to_stars
+        self._jinja_env.filters["score_color"] = self._score_to_color
+
+    @staticmethod
+    def _score_to_stars(score: float) -> str:
+        """Convert a 0–100 relevance score to a filled/empty star string (★★★★☆)."""
+        stars = max(1, min(5, round(score / 20)))
+        return "★" * stars + "☆" * (5 - stars)
+
+    @staticmethod
+    def _score_to_color(score: float) -> str:
+        """Return a hex color representing the score band."""
+        if score >= 80:
+            return "#059669"   # green
+        if score >= 60:
+            return "#d97706"   # amber
+        if score >= 40:
+            return "#6366f1"   # indigo
+        return "#6b7280"       # grey
 
     def generate(
         self,
         articles: list[Article],
         trends: list[Trend],
         run_id: int,
+        quota_warning: bool = False,
     ) -> Optional[Path]:
         """
         Build the full HTML report and save it to disk.
 
         Args:
-            articles: Processed, scored articles to include.
-            trends:   Detected trends to highlight.
-            run_id:   Agent run ID for traceability.
+            articles:      Processed, scored articles to include.
+            trends:        Detected trends to highlight.
+            run_id:        Agent run ID for traceability.
+            quota_warning: Show API-quota warning banner (REQ-08).
 
         Returns:
             Path to the generated HTML report file.
@@ -84,6 +107,8 @@ class ReportGenerator:
         report_path = self._reports_dir / f"pm_intelligence_report_{timestamp}.html"
 
         categorised = self._categorise_articles(articles)
+        # REQ-06: build thematic sections with central idea summaries
+        thematic_sections = self._build_thematic_sections(articles)
 
         context = {
             "generated_at": now,
@@ -95,6 +120,8 @@ class ReportGenerator:
             "categorised_articles": categorised,
             "top_articles": sorted(articles, key=lambda a: a.relevance_score, reverse=True)[:10],
             "category_meta": _CATEGORY_META,
+            "quota_warning": quota_warning,
+            "thematic_sections": thematic_sections,
         }
 
         html_content = self._render_html(context)
@@ -266,3 +293,85 @@ Articles: {context['total_articles']} | Trends: {context['total_trends']}</p>"""
 
         sections.append('</body></html>')
         return "\n".join(sections)
+
+    @staticmethod
+    def _build_thematic_sections(articles: list[Article]) -> list[dict]:
+        """
+        REQ-06: Group articles into 3-5 thematic sections using the LLM.
+
+        Each section contains:
+          - title:       Short thematic heading
+          - central_idea: 2-4 sentence summary of the common thread
+          - articles:    List of Article objects in this section
+
+        Falls back to category-based grouping if the LLM is unavailable.
+        """
+        if not articles or not settings.openai_api_key:
+            return []
+
+        # Build a compact article list for the clustering prompt
+        article_lines = "\n".join(
+            f"{i+1}. [{a.category}] {a.title or '(no title)'}"
+            for i, a in enumerate(articles[:40])  # limit to avoid token overrun
+        )
+
+        prompt = f"""You are a PM content strategist. Group the following articles into 3–5 thematic sections.
+For each section, provide:
+- A short title (4–7 words)
+- A central_idea: 2–4 sentences describing the common thread for that section
+- article_indices: a JSON array of the 1-based article numbers that belong
+
+Articles:
+{article_lines}
+
+Return ONLY a valid JSON array. Example format:
+[
+  {{
+    "title": "AI-Driven Project Delivery",
+    "central_idea": "These articles explore how AI and LLMs are transforming how PMs plan, estimate, and track projects. The central theme is using automation to reduce manual overhead while improving forecast accuracy.",
+    "article_indices": [1, 4, 7]
+  }}
+]"""
+
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=settings.openai_api_key)
+            response = client.chat.completions.create(
+                model=settings.openai_model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=1200,
+                temperature=0.3,
+                response_format={"type": "json_object"},
+            )
+            raw = response.choices[0].message.content
+            # The response is a JSON object wrapping the array
+            parsed = json.loads(raw)
+            # Handle both {"sections": [...]} and direct array forms
+            if isinstance(parsed, list):
+                sections_data = parsed
+            elif isinstance(parsed, dict):
+                sections_data = next(
+                    (v for v in parsed.values() if isinstance(v, list)), []
+                )
+            else:
+                sections_data = []
+
+            result = []
+            for sec in sections_data[:5]:
+                indices = [i - 1 for i in sec.get("article_indices", []) if 1 <= i <= len(articles)]
+                sec_articles = [articles[i] for i in indices if i < len(articles)]
+                if sec_articles:
+                    result.append({
+                        "title": sec.get("title", ""),
+                        "central_idea": sec.get("central_idea", ""),
+                        "articles": sec_articles,
+                    })
+            if result:
+                return result
+
+        except openai.RateLimitError:
+            logger.warning("REQ-06: rate limit hit during thematic clustering – skipping")
+        except Exception as exc:
+            logger.warning("REQ-06: thematic clustering failed (%s) – skipping", exc)
+
+        return []

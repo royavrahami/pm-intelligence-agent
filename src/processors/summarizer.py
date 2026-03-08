@@ -22,8 +22,9 @@ from src.config.settings import settings
 
 logger = logging.getLogger(__name__)
 
-# System prompt defines the agent's persona for PM-focused analysis
-_SYSTEM_PROMPT = """You are a Senior Program Management Advisor with deep expertise in:
+def _build_system_prompt(language: str = "English") -> str:
+    """Build the summarizer system prompt with the configured output language."""
+    return f"""You are a Senior Program Management Advisor with deep expertise in:
 - Project & Program Management in high-tech and software companies
 - Agile methodologies (Scrum, Kanban, SAFe, LeSS) and agile transformations
 - Engineering leadership, team performance, and org design
@@ -32,14 +33,14 @@ _SYSTEM_PROMPT = """You are a Senior Program Management Advisor with deep expert
 - DevOps, CI/CD, and software delivery excellence
 
 Your job: analyse a piece of tech/management content and return a structured JSON object with exactly these three fields:
-{
-  "summary": "<3-5 sentence summary in English>",
+{{
+  "summary": "<3-5 sentence summary>",
   "key_insights": ["<insight 1>", "<insight 2>", "<insight 3>"],
   "pm_relevance": "<2-3 sentences explaining why this matters to a Project/Program Manager in a high-tech company>"
-}
+}}
 
 Rules:
-- Write in clear, professional English.
+- Write ALL output text in {language}. This includes summary, key_insights, and pm_relevance.
 - Be concise and information-dense – no filler.
 - key_insights must be actionable, specific bullet points a PM can act on.
 - pm_relevance must link directly to project delivery, team management, stakeholder communication, or strategic planning.
@@ -63,18 +64,27 @@ class Summarizer:
     Generates AI-powered structured summaries via OpenAI.
 
     Args:
-        api_key: OpenAI API key (defaults to settings).
-        model:   OpenAI model name (defaults to settings).
+        api_key:   OpenAI API key (defaults to settings).
+        model:     OpenAI model name (defaults to settings).
+        language:  Output language for AI text (REQ-04).
+
+    Public Attributes:
+        quota_warning (bool): True when a RateLimitError was encountered this
+            session so callers can surface a report warning banner (REQ-08).
     """
 
     def __init__(
         self,
         api_key: Optional[str] = None,
         model: Optional[str] = None,
+        language: Optional[str] = None,
     ) -> None:
         self._client = OpenAI(api_key=api_key or settings.openai_api_key)
         self._model = model or settings.openai_model
         self._max_tokens = settings.openai_max_tokens
+        self._system_prompt = _build_system_prompt(language or settings.report_language)
+        # REQ-08: flag set on quota/rate-limit errors for report banner
+        self.quota_warning: bool = False
 
     def summarise(
         self,
@@ -104,7 +114,7 @@ class Summarizer:
             response = self._client.chat.completions.create(
                 model=self._model,
                 messages=[
-                    {"role": "system", "content": _SYSTEM_PROMPT},
+                    {"role": "system", "content": self._system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
                 max_tokens=self._max_tokens,
@@ -115,6 +125,8 @@ class Summarizer:
             return self._parse_response(raw_json)
 
         except openai.RateLimitError:
+            # REQ-08: set quota flag for report warning banner
+            self.quota_warning = True
             logger.warning("OpenAI rate limit hit – skipping article: %s", title[:50])
         except openai.APIConnectionError as exc:
             logger.error("OpenAI connection error: %s", exc)

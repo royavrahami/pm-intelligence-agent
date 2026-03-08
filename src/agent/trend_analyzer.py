@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -22,16 +23,20 @@ from typing import Optional
 import openai
 from openai import OpenAI
 
+_SIMILARITY_THRESHOLD = 0.6  # Jaccard similarity threshold for trend deduplication
+
 from src.config.settings import settings
 from src.storage.models import Article, Trend
 from src.storage.repository import ArticleRepository, TrendRepository
 
 logger = logging.getLogger(__name__)
 
-_TREND_DETECTION_PROMPT = """You are a Senior Program Management Analyst tracking the Project Management,
+def _build_trend_prompt(language: str = "English") -> str:
+    """Build the trend detection system prompt with the configured output language."""
+    return f"""You are a Senior Program Management Analyst tracking the Project Management,
 Program Management, and Engineering Leadership landscape in high-tech companies.
 
-Analyse the following list of article titles and summaries collected in the last 7 days.
+Analyse the following list of article titles and summaries.
 Identify the TOP 5 most significant trends, shifts, or emerging topics relevant to:
 - Project & program management practices
 - Agile methodologies and frameworks
@@ -40,17 +45,26 @@ Identify the TOP 5 most significant trends, shifts, or emerging topics relevant 
 - AI/LLM tools for PM productivity
 - DevOps and delivery excellence
 
+IMPORTANT RULES:
+- Each trend must be SEMANTICALLY DISTINCT from others - no overlapping topics
+- If multiple articles cover similar themes, merge them into ONE trend
+- Prefer specific, actionable trend names over vague generalizations
+- Avoid trend names like "PM Adoption", "Growing Interest" that could apply to anything
+- You are analysing the FULL article database (not just recent articles), so identify
+  trends that represent sustained patterns across multiple sources and time periods.
+
 For each trend return a JSON object:
-{
-  "name": "<Short trend name, max 60 chars>",
+{{
+  "name": "<Specific, distinct trend name, max 60 chars>",
   "description": "<2-3 sentences describing the trend and why it matters>",
   "category": "<one of: project_management | program_management | agile | leadership | strategy | ai_pm | tools>",
   "is_alert": <true if this trend requires IMMEDIATE attention from a Project/Program Manager>,
   "article_indices": [<list of 0-based indices from the input that support this trend>]
-}
+}}
 
+Write the name and description fields in {language}.
 Return a JSON object with a single key `trends` whose value is an array of trend objects.
-Example: {"trends": [{"name": "...", "description": "...", ...}, ...]}
+Example: {{"trends": [{{"name": "...", "description": "...", ...}}, ...]}}
 No markdown, no preamble.
 Focus on: AI-assisted PM tools, agile framework shifts, new leadership patterns, OKR methodologies, remote/hybrid team challenges."""
 
@@ -74,18 +88,24 @@ class TrendAnalyzer:
         trend_repo: TrendRepository,
         api_key: Optional[str] = None,
         model: Optional[str] = None,
+        language: Optional[str] = None,
     ) -> None:
         self._article_repo = article_repo
         self._trend_repo = trend_repo
         self._client = OpenAI(api_key=api_key or settings.openai_api_key)
         self._model = model or settings.openai_model
+        self._trend_prompt = _build_trend_prompt(language or settings.report_language)
 
-    def analyse(self, lookback_days: int = 7) -> list[Trend]:
+    def analyse(self, lookback_days: int = 30) -> list[Trend]:
         """
-        Run PM-focused trend detection on articles from the last N days.
+        Run PM-focused trend detection on the FULL article database (last N days).
+
+        Trend detection is intentionally independent of the current collection run –
+        it queries the entire article history so trends reflect sustained patterns,
+        not just what was collected in the last few hours.
 
         Args:
-            lookback_days: How many days of articles to analyse.
+            lookback_days: How many days of history to include (default: 30).
 
         Returns:
             List of newly created or updated Trend objects.
@@ -107,6 +127,9 @@ class TrendAnalyzer:
         if not trend_data:
             return []
 
+        # Deduplicate similar trends from LLM output
+        trend_data = self._deduplicate_trends(trend_data)
+
         created_trends: list[Trend] = []
         for td in trend_data:
             try:
@@ -126,13 +149,13 @@ class TrendAnalyzer:
             for i, a in enumerate(articles[:50])
         )
 
-        user_content = f"Articles collected (last 7 days):\n{article_list_str}"
+        user_content = f"Articles from the knowledge base (last 30 days):\n{article_list_str}"
 
         try:
             response = self._client.chat.completions.create(
                 model=self._model,
                 messages=[
-                    {"role": "system", "content": _TREND_DETECTION_PROMPT},
+                    {"role": "system", "content": self._trend_prompt},
                     {"role": "user", "content": user_content},
                 ],
                 max_tokens=1500,
@@ -237,3 +260,67 @@ class TrendAnalyzer:
             0.1,
         )
         return min(round((trend.article_count / days_active) * 10, 2), 100.0)
+
+    @staticmethod
+    def _normalize_text(text: str) -> set[str]:
+        """
+        Normalize text to a set of lowercase words for similarity comparison.
+        Removes common stop words and special characters.
+        """
+        stop_words = {
+            "the", "a", "an", "in", "on", "at", "to", "for", "of", "and", "or",
+            "is", "are", "was", "were", "be", "been", "being", "with", "as", "by",
+            "new", "latest", "recent", "emerging", "growing", "rise", "adoption",
+        }
+        text = text.lower()
+        words = set(re.findall(r"\b[a-z]{3,}\b", text))
+        return words - stop_words
+
+    @staticmethod
+    def _jaccard_similarity(set1: set, set2: set) -> float:
+        """Calculate Jaccard similarity between two sets of words."""
+        if not set1 or not set2:
+            return 0.0
+        intersection = len(set1 & set2)
+        union = len(set1 | set2)
+        return intersection / union if union else 0.0
+
+    def _deduplicate_trends(self, trend_data_list: list[dict]) -> list[dict]:
+        """
+        Remove semantically similar trends from the LLM output.
+        Keeps the first occurrence when trends are similar.
+        """
+        if not trend_data_list:
+            return []
+
+        unique_trends = []
+        seen_word_sets = []
+
+        for td in trend_data_list:
+            name = td.get("name", "").strip()
+            if not name:
+                continue
+
+            current_words = self._normalize_text(name)
+            is_duplicate = False
+
+            for seen_words in seen_word_sets:
+                if self._jaccard_similarity(current_words, seen_words) >= _SIMILARITY_THRESHOLD:
+                    logger.debug(
+                        "Dedup: skipping similar trend '%s' (similarity >= %.1f)",
+                        name, _SIMILARITY_THRESHOLD
+                    )
+                    is_duplicate = True
+                    break
+
+            if not is_duplicate:
+                unique_trends.append(td)
+                seen_word_sets.append(current_words)
+
+        if len(unique_trends) < len(trend_data_list):
+            logger.info(
+                "Trend deduplication: %d -> %d unique trends",
+                len(trend_data_list), len(unique_trends)
+            )
+
+        return unique_trends

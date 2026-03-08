@@ -2,19 +2,17 @@ name: PM Intelligence Agent
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Triggers:
-#   - Schedule:  collection 2× daily (09:00 + 21:00 UTC / 11:00 + 23:00 Israel)
-#                daily digest every day at 22:00 UTC (midnight Israel time)
-#   - Manual:    GitHub Actions → "Run workflow" button
+#   - Schedule:  daily report at 06:00 UTC (09:00 Israel) – once per day via cron
+#   - Manual:    GitHub Actions → "Run workflow" button with full parameter control
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
   schedule:
-    - cron: "0 9,21 * * *"    # Collection agent: 09:00 and 21:00 UTC (offset from QA)
-    - cron: "0 22 * * *"      # Daily digest: 22:00 UTC (midnight Israel)
+    - cron: "0 6 * * *"       # Daily report: 06:00 UTC (09:00 Israel time)
   workflow_dispatch:
     inputs:
       job_type:
-        description: "Job to run: 'collect' or 'digest'"
+        description: "Job to run: 'collect' (full run + email) or 'digest' (digest summary)"
         required: false
         default: "collect"
         type: choice
@@ -23,12 +21,22 @@ on:
         description: "Minimum relevance score (0–100)"
         required: false
         default: "40"
+      max_articles:
+        description: "Max articles per report (5–50)"
+        required: false
+        default: "15"
       openai_model:
         description: "OpenAI model"
         required: false
         default: "gpt-4o"
         type: choice
         options: [gpt-4o, gpt-4o-mini]
+      report_language:
+        description: "Language for AI summaries and trend analysis"
+        required: false
+        default: "English"
+        type: choice
+        options: [English, Hebrew, Spanish, French, German, Portuguese, Arabic]
 
 permissions:
   contents: write   # required to commit reports back to the repo
@@ -46,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'workflow_dispatch' && github.event.inputs.job_type != 'digest') ||
-      (github.event_name == 'schedule' && github.event.schedule != '0 22 * * *')
+      github.event_name == 'schedule'
 
     steps:
       # ── 1. Checkout ─────────────────────────────────────────────────────────
@@ -86,7 +94,9 @@ jobs:
           OPENAI_MAX_TOKENS=2000
           DATABASE_URL=sqlite:///./data/pm_agent.db
           MIN_RELEVANCE_SCORE=${{ github.event.inputs.min_relevance_score || '40' }}
-          SCHEDULE_INTERVAL_HOURS=6
+          MAX_ARTICLES_PER_REPORT=${{ github.event.inputs.max_articles || '15' }}
+          REPORT_LANGUAGE=${{ github.event.inputs.report_language || 'English' }}
+          SCHEDULE_INTERVAL_HOURS=24
           REPORTS_DIR=./reports
           LOG_LEVEL=INFO
           LOG_DIR=./logs
@@ -156,8 +166,7 @@ jobs:
     name: Daily Digest – End of Day Summary
     runs-on: ubuntu-latest
     if: |
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.job_type == 'digest') ||
-      (github.event_name == 'schedule' && github.event.schedule == '0 22 * * *')
+      github.event_name == 'workflow_dispatch' && github.event.inputs.job_type == 'digest'
 
     steps:
       - name: Checkout repository
@@ -192,6 +201,8 @@ jobs:
           OPENAI_MAX_TOKENS=2000
           DATABASE_URL=sqlite:///./data/pm_agent.db
           MIN_RELEVANCE_SCORE=30
+          MAX_ARTICLES_PER_REPORT=${{ github.event.inputs.max_articles || '15' }}
+          REPORT_LANGUAGE=${{ github.event.inputs.report_language || 'English' }}
           REPORTS_DIR=./reports
           LOG_LEVEL=INFO
           LOG_DIR=./logs

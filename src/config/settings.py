@@ -56,6 +56,40 @@ class Settings(BaseSettings):
         description="Minimum score (0–100) to include an article in reports/summaries",
     )
 
+    # ── Report content ────────────────────────────────────────────────────────
+    max_articles_per_report: int = Field(
+        default=30,
+        ge=5,
+        le=100,
+        description="Maximum articles per report — target 20-30 (REQ-02)",
+    )
+    min_articles_per_report: int = Field(
+        default=20,
+        ge=1,
+        le=100,
+        description="Minimum articles — log warning if fewer found (REQ-02)",
+    )
+    max_article_age_days: int = Field(
+        default=90,
+        ge=7,
+        le=365,
+        description="Maximum article age in days. Articles older than this are excluded from reports.",
+    )
+    prioritize_recent_articles: bool = Field(
+        default=True,
+        description="If True, recent articles (< 30 days) get a score boost for ranking.",
+    )
+
+    # ── Language ──────────────────────────────────────────────────────────────
+    report_language: str = Field(
+        default="English",
+        description=(
+            "Language for AI-generated summaries, insights and trend analysis. "
+            "Examples: 'English', 'Hebrew', 'Spanish', 'French', 'German'. "
+            "Applies to all OpenAI-generated text in reports and emails."
+        ),
+    )
+
     # ── SMTP Notifications ────────────────────────────────────────────────────
     smtp_host: str = Field(default="smtp.gmail.com", description="SMTP server hostname")
     smtp_port: int = Field(default=587, description="SMTP port (587=STARTTLS, 465=SSL)")

@@ -190,6 +190,28 @@ class AgentRun(Base):
         return f"<AgentRun id={self.id} status={self.status} at={self.started_at}>"
 
 
+class SeenItem(Base):
+    """
+    REQ-07: Persistent deduplication store.
+
+    Tracks every URL that has been included in a generated report so it is
+    never shown to the user more than once across all past and future reports.
+    Collected-but-deduped articles are still available for trend analysis.
+    """
+
+    __tablename__ = "seen_items"
+    __table_args__ = (UniqueConstraint("url", name="uq_seen_url"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    url = Column(String(1000), nullable=False, unique=True)
+    title = Column(String(500), nullable=True)
+    first_seen_at = Column(DateTime(timezone=True), nullable=False, default=_utcnow)
+    report_count = Column(Integer, nullable=False, default=1)
+
+    def __repr__(self) -> str:
+        return f"<SeenItem url={self.url!r:.60}>"
+
+
 class KnowledgeExpansion(Base):
     """
     Audit log for self-discovered information sources.

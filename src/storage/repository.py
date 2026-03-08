@@ -18,6 +18,7 @@ from src.storage.models import (
     Article,
     ArticleTrendTag,
     KnowledgeExpansion,
+    SeenItem,
     Source,
     Trend,
 )
@@ -281,3 +282,72 @@ class KnowledgeExpansionRepository:
             .where(KnowledgeExpansion.source_url == source_url)
         ).scalar()
         return bool(result and result > 0)
+
+
+# ── Seen-Item Repository (REQ-07) ─────────────────────────────────────────────
+
+class SeenItemRepository:
+    """
+    REQ-07: Persistent deduplication store.
+
+    Tracks every article URL that has been shown in a report so the same item
+    is never surfaced to the user twice.  Articles that are deduped are still
+    counted in trend analysis – they are only excluded from the *displayed* list.
+    """
+
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def is_seen(self, url: str) -> bool:
+        """Return True if the URL has already been shown in a past report."""
+        return bool(
+            self._session.execute(
+                select(func.count()).select_from(SeenItem).where(SeenItem.url == url)
+            ).scalar()
+        )
+
+    def get_seen_urls(self) -> set[str]:
+        """Return the full set of already-seen URLs (for bulk filtering)."""
+        rows = self._session.execute(select(SeenItem.url)).scalars().all()
+        return set(rows)
+
+    def mark_seen(self, url: str, title: Optional[str] = None) -> None:
+        """
+        Mark a URL as seen.  Idempotent – increments report_count on repeat calls
+        (should not happen in practice due to dedup filtering, but safe to call).
+        """
+        existing = self._session.execute(
+            select(SeenItem).where(SeenItem.url == url)
+        ).scalar_one_or_none()
+
+        if existing:
+            existing.report_count += 1
+        else:
+            self._session.add(SeenItem(url=url, title=title))
+        self._session.flush()
+
+    def mark_seen_bulk(self, articles: list) -> int:
+        """
+        Mark all articles in the list as seen.
+
+        Args:
+            articles: ORM Article objects with .url and .title attributes.
+
+        Returns:
+            Number of newly-marked items.
+        """
+        existing_urls = self.get_seen_urls()
+        new_count = 0
+        for article in articles:
+            if article.url not in existing_urls:
+                self._session.add(SeenItem(url=article.url, title=article.title))
+                new_count += 1
+            else:
+                # Still increment the counter for audit purposes
+                existing = self._session.execute(
+                    select(SeenItem).where(SeenItem.url == article.url)
+                ).scalar_one_or_none()
+                if existing:
+                    existing.report_count += 1
+        self._session.flush()
+        return new_count
