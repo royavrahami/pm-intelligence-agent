@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PM Intelligence Report – 09 Mar 2026 06:52 UTC</title>
+  <style>
+    :root {
+      --primary:   #0f3460;
+      --accent:    #e94560;
+      --light:     #f5f7fa;
+      --card-bg:   #ffffff;
+      --border:    #e0e6ed;
+      --text:      #1a1a2e;
+      --muted:     #6b7280;
+      --success:   #10b981;
+      --warning:   #f59e0b;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--light);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
+      color: white;
+      padding: 36px 40px;
+    }
+    .header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
+    .header p  { opacity: 0.75; margin-top: 6px; font-size: 0.9rem; }
+    .stats-row { display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap; }
+    .stat-card {
+      background: rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+    }
+    .stat-card .num { font-size: 1.8rem; font-weight: 800; }
+    .stat-card .lbl { font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ── Layout ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+    section { margin-bottom: 48px; }
+    h2 {
+      font-size: 1.4rem;
+      color: var(--primary);
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      transition: box-shadow 0.2s;
+    }
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    .card.alert-card { border-left: 5px solid var(--accent); background: #fff8f8; }
+
+    /* ── Article Card ── */
+    .article-title a {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .article-title a:hover { text-decoration: underline; color: var(--accent); }
+    .article-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 6px 0 12px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-cat    { background: #dbeafe; color: #1d4ed8; }
+    .badge-score  { background: var(--accent); color: white; }
+    .badge-alert  { background: #fde68a; color: #92400e; }
+    .badge-trend  { background: #d1fae5; color: #065f46; }
+
+    /* ── Star Rating ── */
+    .star-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8rem;
+    }
+    .stars       { letter-spacing: 1px; font-size: 1rem; line-height: 1; }
+    .score-num   { font-weight: 700; font-size: 0.8rem; padding: 1px 6px;
+                   border-radius: 4px; color: white; }
+
+    .article-summary { color: var(--text); margin-bottom: 10px; font-size: 0.95rem; }
+
+    .insights { margin: 10px 0; }
+    .insight-item {
+      background: #eff6ff;
+      border-left: 3px solid var(--primary);
+      padding: 6px 12px;
+      margin: 4px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+    }
+
+    /* PM-relevance box (mirrors qa-box in QA agent) */
+    .pm-box {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+    .pm-box strong { color: #166534; }
+
+    /* ── Trend Card ── */
+    .trend-card { display: flex; gap: 16px; align-items: flex-start; }
+    .trend-icon { font-size: 1.8rem; flex-shrink: 0; }
+    .trend-body { flex: 1; }
+    .trend-name { font-size: 1rem; font-weight: 700; color: var(--primary); }
+    .trend-desc { font-size: 0.9rem; color: #374151; margin-top: 4px; }
+    .trend-meta { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+    .momentum-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .momentum-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success), var(--accent));
+      border-radius: 3px;
+    }
+
+    /* ── Category Sections ── */
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 32px 0 12px;
+    }
+    .category-icon { font-size: 1.5rem; }
+    .category-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+    .category-count { font-size: 0.8rem; color: var(--muted); }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .header { padding: 24px 16px; }
+      .container { padding: 16px; }
+      .stats-row { gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── REQ-08: Quota Warning Banner ────────────────────────────────────── -->
+
+
+<!-- ── Header ────────────────────────────────────────────────────────────── -->
+<div class="header">
+  <h1>📋 PM Intelligence Report</h1>
+  <p>Generated: 09 Mar 2026 06:52 UTC &nbsp;|&nbsp; Run #3</p>
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="num">15</div>
+      <div class="lbl">Articles</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">10</div>
+      <div class="lbl">Trends</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">6</div>
+      <div class="lbl">Alerts</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">4</div>
+      <div class="lbl">Categories</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ── Alerts Section ──────────────────────────────────────────────────── -->
+  
+  <section>
+    <h2>🚨 Alerts – Immediate Attention Required</h2>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">AI-Enhanced Scrum Practices <span class="badge badge-alert">ALERT</span></div>
+          <div class="trend-desc">AI tools, particularly Large Language Models (LLMs), are increasingly integrated into Scrum practices to automate tasks such as sprint planning, backlog grooming, and team flow management. These tools enhance efficiency while maintaining core Scrum principles, offering significant productivity gains for Scrum Masters and teams.</div>
+          <div class="trend-meta">
+            Category: Agile &amp; Scrum &nbsp;|&nbsp;
+            Articles: 10 &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🤖</div>
+        <div class="trend-body">
+          <div class="trend-name">Generative AI in Agile Software Development <span class="badge badge-alert">ALERT</span></div>
+          <div class="trend-desc">Generative AI is being leveraged to improve productivity and quality in agile software development. By automating routine tasks and enhancing decision-making processes, AI tools are transforming how agile teams manage projects, leading to more efficient and effective development cycles.</div>
+          <div class="trend-meta">
+            Category: AI for PM &nbsp;|&nbsp;
+            Articles: 5 &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">Remote and Hybrid Scrum Adaptations <span class="badge badge-alert">ALERT</span></div>
+          <div class="trend-desc">The adaptation of Scrum practices for remote and hybrid work environments is crucial as teams continue to navigate post-pandemic work settings. Adjustments in communication and collaboration tools are necessary to maintain productivity and team cohesion in these flexible work arrangements.</div>
+          <div class="trend-meta">
+            Category: Agile &amp; Scrum &nbsp;|&nbsp;
+            Articles: 2 &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🗂️</div>
+        <div class="trend-body">
+          <div class="trend-name">Technical Debt Management in Agile Teams <span class="badge badge-alert">ALERT</span></div>
+          <div class="trend-desc">Managing technical debt is becoming a critical focus for agile teams, particularly in multidisciplinary and data-intensive environments. Effective technical debt management processes are essential to maintain software quality and prevent long-term project risks.</div>
+          <div class="trend-meta">
+            Category: Program Management &nbsp;|&nbsp;
+            Articles: 2 &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">הטמעת AI בצוותי Scrum <span class="badge badge-alert">ALERT</span></div>
+          <div class="trend-desc">כלים מבוססי AI, במיוחד מודלים של שפה גדולה (LLMs), משנים את האופן שבו צוותי Scrum פועלים, תוך שמירה על עקרונות הליבה של המתודולוגיה. השימוש ב-AI מייעל תהליכים כמו תכנון ספרינט, ניהול backlog, והערכת סיפורים, ומאפשר לצוותים להתמקד במשימות בעלות ערך גבוה יותר.</div>
+          <div class="trend-meta">
+            Category: Agile &amp; Scrum &nbsp;|&nbsp;
+            Articles: 11 &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🗂️</div>
+        <div class="trend-body">
+          <div class="trend-name">שילוב AI בתפקידי מנהלי מוצר ובעלי מוצר <span class="badge badge-alert">ALERT</span></div>
+          <div class="trend-desc">AI מספק כלים חדשניים למנהלי מוצר ובעלי מוצר, המאפשרים להם לנהל טוב יותר את מחזור חיי המוצר, לשפר את תהליכי קבלת ההחלטות ולהגביר את היעילות. כלים אלו מסייעים במעקב אחר מדדי הצלחה, ניתוח שוק, ותכנון אסטרטגי.</div>
+          <div class="trend-meta">
+            Category: Program Management &nbsp;|&nbsp;
+            Articles: 2 &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </section>
+  
+
+  <!-- ── Top 10 Articles ─────────────────────────────────────────────────── -->
+  <section>
+    <h2>⭐ Top 10 Articles This Period</h2>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/sohei56/claude-scrum-team" target="_blank" rel="noopener">sohei56/claude-scrum-team</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★★☆</span>
+          <span class="score-num" style="background:#d97706;">77</span>
+        </span>
+        <span class="badge badge-cat">🔄 Agile &amp; Scrum</span>
+        
+        <span>09 Mar 2026 06:50 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The GitHub repository &#39;sohei56/claude-scrum-team&#39; introduces a Scrum development framework powered by AI agents, specifically Claude Code Agent Teams. It allows an AI Scrum Master and AI Developers to execute Sprint cycles, enabling the user to function as the Product Owner. The project leverages automation and AI to streamline Scrum processes, potentially enhancing team efficiency and productivity.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Implement AI agents to automate Scrum roles, reducing manual overhead and increasing focus on strategic tasks.</div>
+        
+        <div class="insight-item">• Utilize Claude Code Agent Teams to maintain consistent Sprint cycles, ensuring continuous delivery and iterative improvements.</div>
+        
+        <div class="insight-item">• Position yourself as the Product Owner to focus on vision and backlog prioritization while AI handles execution.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> This repository is relevant to Project/Program Managers as it explores the integration of AI in Scrum, which can significantly enhance team productivity and efficiency. By automating routine Scrum roles, PMs can focus more on strategic planning, stakeholder communication, and backlog management, ultimately improving project delivery timelines and outcomes.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://www.romanpichler.com/blog/how-to-create-a-product-strategy-for-an-existing-product/" target="_blank" rel="noopener">How to Build a Strategy for an Existing Product</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★☆☆</span>
+          <span class="score-num" style="background:#d97706;">66</span>
+        </span>
+        <span class="badge badge-cat">🧭 Strategy &amp; OKRs</span>
+        
+        <span>12 Jan 2026 10:23 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The article by Roman Pichler outlines the importance of having a clear product strategy for existing products. A product strategy serves as a decision-making framework that helps align stakeholders and development teams, ensuring the right features are built to achieve product success. The strategy should address key questions about the target users, the problem it solves, its business benefits, and its unique features. The first step in developing a product strategy is to clearly articulate the current strategy using tools like the Product Vision Board.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Ensure the product strategy is clearly documented and not just tacit knowledge among senior managers or team members.</div>
+        
+        <div class="insight-item">• Use tools like the Product Vision Board to articulate and communicate the current product strategy effectively.</div>
+        
+        <div class="insight-item">• Align the product strategy with clear outcomes and OKRs to guide feature development and stakeholder alignment.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> For Project/Program Managers in high-tech companies, a well-defined product strategy is crucial for guiding project delivery and ensuring alignment across teams. It helps in making informed decisions about feature prioritization and resource allocation. Clear communication of the strategy aids in managing stakeholder expectations and aligning team efforts towards shared goals.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/mamiaijf/requirements-expert" target="_blank" rel="noopener">mamiaijf/requirements-expert</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">57</span>
+        </span>
+        <span class="badge badge-cat">🔄 Agile &amp; Scrum</span>
+        
+        <span>09 Mar 2026 06:50 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The &#39;requirements-expert&#39; GitHub repository offers a plugin designed to enhance requirements management by facilitating traceability and collaboration. It integrates various technologies such as AI, chatbots, and cloud services to streamline the transition from ideas to actionable tasks. This tool is particularly relevant for agile environments where efficient planning and prioritization are critical.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Implement the plugin to improve traceability in requirements management, ensuring all changes and decisions are documented and accessible.</div>
+        
+        <div class="insight-item">• Utilize AI and chatbot integrations to automate and streamline communication and decision-making processes in agile projects.</div>
+        
+        <div class="insight-item">• Leverage the tool&#39;s capabilities to enhance collaboration among cross-functional teams, aligning them with project goals and priorities.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> This tool is crucial for Project/Program Managers in high-tech companies as it enhances the efficiency of requirements management, a key aspect of project delivery. By improving traceability and collaboration, it supports better stakeholder communication and aligns team efforts with strategic objectives, ultimately leading to more successful project outcomes.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/bitovi/jira-timeline-report" target="_blank" rel="noopener">bitovi/jira-timeline-report</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">53</span>
+        </span>
+        <span class="badge badge-cat">📋 Project Management</span>
+        
+        <span>08 Mar 2026 09:23 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The &#39;bitovi/jira-timeline-report&#39; is an open-source tool designed to generate PowerPoint slides from Jira data for high-level status reporting. It is implemented in JavaScript and focuses on agile and program management practices. The tool aims to streamline the process of creating visual reports for stakeholders, enhancing communication and transparency in project management.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Utilize this tool to automate the creation of status reports from Jira, saving time and reducing manual effort.</div>
+        
+        <div class="insight-item">• Incorporate the generated slides into regular stakeholder meetings to improve transparency and communication.</div>
+        
+        <div class="insight-item">• Leverage the tool to maintain consistency in reporting formats across different projects and teams.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> This tool is relevant to Project and Program Managers in high-tech companies as it automates the tedious process of compiling status reports, allowing them to focus on strategic planning and decision-making. By enhancing communication with stakeholders through consistent and visually appealing reports, managers can ensure alignment and transparency in project delivery. Additionally, it supports agile methodologies by integrating seamlessly with Jira, a widely used tool in agile project management.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/dangtrunghien/porker-vibe" target="_blank" rel="noopener">dangtrunghien/porker-vibe</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">53</span>
+        </span>
+        <span class="badge badge-cat">🔄 Agile &amp; Scrum</span>
+        
+        <span>08 Mar 2026 09:23 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The GitHub repository &#39;porker-vibe&#39; is a collaborative coding framework designed to streamline task management with a Gemini-inspired user interface. It supports multiple models and integrates various technologies such as AI, cross-platform development, and human-pose estimation. The project is tagged with agile and aims to enhance productivity through its innovative design and functionality.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Leverage the Gemini-inspired UI to improve team collaboration and task management efficiency.</div>
+        
+        <div class="insight-item">• Utilize the multi-model support to integrate AI and other advanced technologies for enhanced project outcomes.</div>
+        
+        <div class="insight-item">• Incorporate cross-platform capabilities to ensure broader accessibility and usability across different devices and environments.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> This repository is relevant to Project Managers as it offers tools for improving task management and collaboration, crucial for agile project delivery. The integration of AI and cross-platform features can enhance team performance and stakeholder engagement by providing more flexible and innovative solutions. Understanding and utilizing such frameworks can be pivotal in strategic planning and execution of tech projects.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/15616003/pert-calibration-system" target="_blank" rel="noopener">15616003/pert-calibration-system</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">53</span>
+        </span>
+        <span class="badge badge-cat">🔄 Agile &amp; Scrum</span>
+        
+        <span>08 Mar 2026 09:23 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The GitHub repository &#39;pert-calibration-system&#39; provides a tool for calculating project success probabilities using PERT (Program Evaluation and Review Technique) calibration. It leverages statistical methods such as beta-distribution and confidence intervals to enhance the accuracy and reliability of project planning and risk assessment. The tool is implemented in Python and focuses on improving estimation and planning processes in agile project management.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Utilize the PERT calibration system to improve the accuracy of project success probability estimates, enhancing decision-making in project planning.</div>
+        
+        <div class="insight-item">• Incorporate statistical analysis techniques like beta-distribution and confidence intervals to refine risk assessments and project forecasts.</div>
+        
+        <div class="insight-item">• Leverage the tool&#39;s self-calibration feature to continuously improve estimation accuracy based on empirical data.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> For Project/Program Managers in high-tech companies, accurate estimation and risk assessment are crucial for effective project delivery and stakeholder communication. This tool provides a data-driven approach to enhance planning reliability, which can lead to better resource allocation and strategic planning. By integrating such statistical tools, PMs can improve their agile methodologies and increase project success rates.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/ansible-lockdown/github_windows_IaC" target="_blank" rel="noopener">ansible-lockdown/github_windows_IaC</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">53</span>
+        </span>
+        <span class="badge badge-cat">📋 Project Management</span>
+        
+        <span>09 Mar 2026 06:50 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The GitHub repository &#39;ansible-lockdown/github_windows_IaC&#39; provides workflow data for GitHub Actions and Windows Server testing, focusing on lockdown enterprise content. It is designed to enhance project management through various agile and automation workflows. The repository covers a wide range of topics including collaboration tools, process optimization, and workflow analytics, aiming to streamline and secure project workflows.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Integrate workflow automation to enhance task and time management efficiency.</div>
+        
+        <div class="insight-item">• Utilize workflow templates and analytics to optimize business processes and improve cross-team collaboration.</div>
+        
+        <div class="insight-item">• Implement workflow security measures to ensure safe and reliable project execution.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> This repository is relevant to Project/Program Managers in high-tech companies as it offers tools and insights for optimizing project workflows through automation and agile methodologies. It supports efficient task management and cross-team collaboration, which are crucial for successful project delivery and stakeholder satisfaction.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/ansible-lockdown/github_linux_IaC" target="_blank" rel="noopener">ansible-lockdown/github_linux_IaC</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">53</span>
+        </span>
+        <span class="badge badge-cat">📋 Project Management</span>
+        
+        <span>09 Mar 2026 06:50 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The GitHub repository &#39;ansible-lockdown/github_linux_IaC&#39; focuses on providing workflow data for GitHub Actions and Linux server testing, particularly for Lockdown Enterprise Content. It encompasses a range of topics including agile workflows, automation, and project management, aiming to enhance workflow efficiency and security. The repository is written in HCL and has a modest number of stars, indicating a niche but potentially valuable resource for workflow optimization.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Leverage the repository&#39;s workflow templates to streamline and automate repetitive tasks in your project management processes.</div>
+        
+        <div class="insight-item">• Utilize the workflow analytics and tracking features to monitor project progress and optimize team performance.</div>
+        
+        <div class="insight-item">• Incorporate cross-team collaboration tools and document workflows to enhance communication and efficiency across different departments.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> This repository is relevant to Project and Program Managers in high-tech companies as it provides tools and templates that can improve workflow automation and efficiency. By integrating these resources, PMs can enhance project delivery timelines, improve team collaboration, and ensure better alignment with strategic goals. Additionally, the focus on workflow security and integration is crucial for maintaining robust and secure project management practices.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://medium.com/@induwara1203/from-scattered-to-synchronized-how-we-built-our-own-jira-workflow-companion-03b562f2b341?source=rss------project_management-5" target="_blank" rel="noopener">From Scattered to Synchronized: How We Built Our Own Jira Workflow Companion</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">52</span>
+        </span>
+        <span class="badge badge-cat">📋 Project Management</span>
+        
+        <span>07 Mar 2026 18:48 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The article discusses the development of a custom Jira workflow companion to address challenges in managing sprints and project tasks. It highlights the inefficiencies and frustrations experienced when using standard Jira workflows and the need for a more synchronized approach. The solution involved creating a tailored tool that integrates with Jira to enhance visibility, streamline processes, and improve team collaboration.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Identify inefficiencies in current project management tools and assess the need for custom solutions.</div>
+        
+        <div class="insight-item">• Develop integrations with existing tools like Jira to enhance workflow visibility and synchronization.</div>
+        
+        <div class="insight-item">• Focus on improving team collaboration and communication through tailored workflow enhancements.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> This content is relevant to Project/Program Managers as it underscores the importance of customizing tools to fit specific team needs, thereby enhancing project delivery efficiency. It highlights the need for continuous evaluation of existing processes and tools to ensure they align with strategic goals and improve team performance. Effective tool integration and customization can lead to better stakeholder communication and more successful project outcomes.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/SimonBourdages/OKR-Miner" target="_blank" rel="noopener">SimonBourdages/OKR-Miner</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">52</span>
+        </span>
+        <span class="badge badge-cat">🧭 Strategy &amp; OKRs</span>
+        
+        <span>08 Mar 2026 09:23 UTC</span>
+        
+      </div>
+      
+      <div class="article-summary">The GitHub repository &#39;SimonBourdages/OKR-Miner&#39; is a project that combines the concept of OKRs (Objectives and Key Results) with a space-themed idle game. It is designed to engage users in learning about OKRs through an interactive and entertaining format. Despite its low star count, the project offers a unique approach to understanding strategic planning and goal-setting frameworks.</div>
+      
+      
+      <div class="insights">
+        
+        <div class="insight-item">• Consider gamifying OKR training to enhance engagement and retention among team members.</div>
+        
+        <div class="insight-item">• Explore creative methods like games to simplify complex strategic planning concepts for broader team understanding.</div>
+        
+        <div class="insight-item">• Leverage interactive tools to make learning about OKRs more accessible and enjoyable, potentially increasing adoption rates.</div>
+        
+      </div>
+      
+      
+      <div class="pm-box">
+        <strong>🗂️ Relevance for PM/PgM:</strong> This repository is relevant to Project/Program Managers as it presents an innovative way to engage teams with OKRs, a critical tool for strategic alignment and performance tracking. By gamifying the learning process, PMs can foster a more engaging environment that enhances understanding and commitment to organizational goals. This approach can improve stakeholder communication and team alignment on strategic objectives.
+      </div>
+      
+    </div>
+    
+  </section>
+
+  <!-- ── REQ-06: Thematic Sections with Central Idea ─────────────────────── -->
+  
+
+  <!-- ── Articles by Category ────────────────────────────────────────────── -->
+  <section>
+    <h2>📂 All Articles by Category</h2>
+    
+    <div class="category-header">
+      <span class="category-icon">🔄</span>
+      <span class="category-title">Agile &amp; Scrum</span>
+      <span class="category-count">(7 articles)</span>
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/sohei56/claude-scrum-team" target="_blank" rel="noopener">sohei56/claude-scrum-team</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★★☆</span>
+          <span class="score-num" style="background:#d97706;">77</span>
+        </span>
+        <span>09 Mar 2026 06:50 UTC</span>
+      </div>
+      <div class="article-summary">The GitHub repository &#39;sohei56/claude-scrum-team&#39; introduces a Scrum development framework powered by AI agents, specifically Claude Code Agent Teams. It allows an AI Scrum Master and AI Developers to execute Sprint cycles, enabling the user to function as the Product Owner. The project leverages automation and AI to streamline Scrum processes, potentially enhancing team efficiency and productivity.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> This repository is relevant to Project/Program Managers as it explores the integration of AI in Scrum, which can significantly enhance team productivity and efficiency. By automating routine Scrum roles, PMs can focus more on strategic planning, stakeholder communication, and backlog management, ultimately improving project delivery timelines and outcomes.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/mamiaijf/requirements-expert" target="_blank" rel="noopener">mamiaijf/requirements-expert</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">57</span>
+        </span>
+        <span>09 Mar 2026 06:50 UTC</span>
+      </div>
+      <div class="article-summary">The &#39;requirements-expert&#39; GitHub repository offers a plugin designed to enhance requirements management by facilitating traceability and collaboration. It integrates various technologies such as AI, chatbots, and cloud services to streamline the transition from ideas to actionable tasks. This tool is particularly relevant for agile environments where efficient planning and prioritization are critical.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> This tool is crucial for Project/Program Managers in high-tech companies as it enhances the efficiency of requirements management, a key aspect of project delivery. By improving traceability and collaboration, it supports better stakeholder communication and aligns team efforts with strategic objectives, ultimately leading to more successful project outcomes.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/dangtrunghien/porker-vibe" target="_blank" rel="noopener">dangtrunghien/porker-vibe</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">53</span>
+        </span>
+        <span>08 Mar 2026 09:23 UTC</span>
+      </div>
+      <div class="article-summary">The GitHub repository &#39;porker-vibe&#39; is a collaborative coding framework designed to streamline task management with a Gemini-inspired user interface. It supports multiple models and integrates various technologies such as AI, cross-platform development, and human-pose estimation. The project is tagged with agile and aims to enhance productivity through its innovative design and functionality.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> This repository is relevant to Project Managers as it offers tools for improving task management and collaboration, crucial for agile project delivery. The integration of AI and cross-platform features can enhance team performance and stakeholder engagement by providing more flexible and innovative solutions. Understanding and utilizing such frameworks can be pivotal in strategic planning and execution of tech projects.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/15616003/pert-calibration-system" target="_blank" rel="noopener">15616003/pert-calibration-system</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">53</span>
+        </span>
+        <span>08 Mar 2026 09:23 UTC</span>
+      </div>
+      <div class="article-summary">The GitHub repository &#39;pert-calibration-system&#39; provides a tool for calculating project success probabilities using PERT (Program Evaluation and Review Technique) calibration. It leverages statistical methods such as beta-distribution and confidence intervals to enhance the accuracy and reliability of project planning and risk assessment. The tool is implemented in Python and focuses on improving estimation and planning processes in agile project management.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> For Project/Program Managers in high-tech companies, accurate estimation and risk assessment are crucial for effective project delivery and stakeholder communication. This tool provides a data-driven approach to enhance planning reliability, which can lead to better resource allocation and strategic planning. By integrating such statistical tools, PMs can improve their agile methodologies and increase project success rates.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/risk-first/website" target="_blank" rel="noopener">risk-first/website</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">52</span>
+        </span>
+        <span>08 Mar 2026 11:28 UTC</span>
+      </div>
+      <div class="article-summary">המאגר GitHub &#39;risk-first/website&#39; עוסק בפיתוח תוכנה תוך התמקדות בניהול סיכונים. הוא מכיל נושאים כמו תכנות אקסטרים, ניהול תוכנה רזה, מתודולוגיות ומדדים, ומיועד לשיפור ניהול הסיכונים בפיתוח תוכנה. המאגר כתוב ב-JavaScript ויש לו 747 כוכבים.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> ניהול סיכונים הוא חלק קריטי בהצלחת פרויקטים טכנולוגיים, במיוחד בסביבות אג&#39;יליות. הבנה ויישום של עקרונות ניהול סיכונים יכולים לשפר את יכולת הצוות להתמודד עם שינויים ולהבטיח עמידה בלוחות זמנים ובתקציבים. זה חשוב במיוחד למנהלי פרויקטים בתעשיית ההיי-טק כדי להבטיח מסירה מוצלחת של פרויקטים.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://www.scrum.org/resources/blog/working-agreements-super-teams" target="_blank" rel="noopener">Working Agreements For Super Teams</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">51</span>
+        </span>
+        <span>04 Mar 2026 10:22 UTC</span>
+      </div>
+      <div class="article-summary">Working agreements are essential for fostering trust and psychological safety within teams, allowing them to take risks and hold each other accountable. These agreements translate abstract values into specific, observable behaviors that reduce friction and align expectations. They are particularly beneficial for new teams or as a reset tool for existing teams. The process involves creating a shared team vision and translating it into concrete behaviors using a structured approach, such as the Team Vision canvas and specific behavior examples.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> For a Project/Program Manager in a high-tech company, establishing working agreements is crucial for ensuring team alignment and effective collaboration. These agreements help in managing team dynamics, reducing conflicts, and enhancing productivity by setting clear expectations. They also support strategic planning by aligning team behaviors with long-term goals, ultimately contributing to successful project delivery.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/patrickreed22/vibe-kanban" target="_blank" rel="noopener">patrickreed22/vibe-kanban</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">51</span>
+        </span>
+        <span>09 Mar 2026 06:50 UTC</span>
+      </div>
+      <div class="article-summary">Vibe Kanban is a GitHub project aimed at enhancing productivity through optimized interaction with AI coding agents such as Claude Code and Codex. Written in Rust, this tool is designed to streamline workflows by integrating with developer tools and project management systems. It is part of a broader ecosystem of multi-agent and AI-driven coding solutions.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> For a Project/Program Manager in a high-tech company, Vibe Kanban offers a way to enhance team productivity by integrating AI coding agents into the workflow. This can lead to more efficient project delivery and better resource management. Understanding and utilizing such tools can also improve stakeholder communication by demonstrating a commitment to leveraging cutting-edge technology for project success.
+      </div>
+      
+    </div>
+    
+    
+    <div class="category-header">
+      <span class="category-icon">📋</span>
+      <span class="category-title">Project Management</span>
+      <span class="category-count">(5 articles)</span>
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/bitovi/jira-timeline-report" target="_blank" rel="noopener">bitovi/jira-timeline-report</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">53</span>
+        </span>
+        <span>08 Mar 2026 09:23 UTC</span>
+      </div>
+      <div class="article-summary">The &#39;bitovi/jira-timeline-report&#39; is an open-source tool designed to generate PowerPoint slides from Jira data for high-level status reporting. It is implemented in JavaScript and focuses on agile and program management practices. The tool aims to streamline the process of creating visual reports for stakeholders, enhancing communication and transparency in project management.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> This tool is relevant to Project and Program Managers in high-tech companies as it automates the tedious process of compiling status reports, allowing them to focus on strategic planning and decision-making. By enhancing communication with stakeholders through consistent and visually appealing reports, managers can ensure alignment and transparency in project delivery. Additionally, it supports agile methodologies by integrating seamlessly with Jira, a widely used tool in agile project management.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/ansible-lockdown/github_windows_IaC" target="_blank" rel="noopener">ansible-lockdown/github_windows_IaC</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">53</span>
+        </span>
+        <span>09 Mar 2026 06:50 UTC</span>
+      </div>
+      <div class="article-summary">The GitHub repository &#39;ansible-lockdown/github_windows_IaC&#39; provides workflow data for GitHub Actions and Windows Server testing, focusing on lockdown enterprise content. It is designed to enhance project management through various agile and automation workflows. The repository covers a wide range of topics including collaboration tools, process optimization, and workflow analytics, aiming to streamline and secure project workflows.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> This repository is relevant to Project/Program Managers in high-tech companies as it offers tools and insights for optimizing project workflows through automation and agile methodologies. It supports efficient task management and cross-team collaboration, which are crucial for successful project delivery and stakeholder satisfaction.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/ansible-lockdown/github_linux_IaC" target="_blank" rel="noopener">ansible-lockdown/github_linux_IaC</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">53</span>
+        </span>
+        <span>09 Mar 2026 06:50 UTC</span>
+      </div>
+      <div class="article-summary">The GitHub repository &#39;ansible-lockdown/github_linux_IaC&#39; focuses on providing workflow data for GitHub Actions and Linux server testing, particularly for Lockdown Enterprise Content. It encompasses a range of topics including agile workflows, automation, and project management, aiming to enhance workflow efficiency and security. The repository is written in HCL and has a modest number of stars, indicating a niche but potentially valuable resource for workflow optimization.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> This repository is relevant to Project and Program Managers in high-tech companies as it provides tools and templates that can improve workflow automation and efficiency. By integrating these resources, PMs can enhance project delivery timelines, improve team collaboration, and ensure better alignment with strategic goals. Additionally, the focus on workflow security and integration is crucial for maintaining robust and secure project management practices.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://medium.com/@induwara1203/from-scattered-to-synchronized-how-we-built-our-own-jira-workflow-companion-03b562f2b341?source=rss------project_management-5" target="_blank" rel="noopener">From Scattered to Synchronized: How We Built Our Own Jira Workflow Companion</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">52</span>
+        </span>
+        <span>07 Mar 2026 18:48 UTC</span>
+      </div>
+      <div class="article-summary">The article discusses the development of a custom Jira workflow companion to address challenges in managing sprints and project tasks. It highlights the inefficiencies and frustrations experienced when using standard Jira workflows and the need for a more synchronized approach. The solution involved creating a tailored tool that integrates with Jira to enhance visibility, streamline processes, and improve team collaboration.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> This content is relevant to Project/Program Managers as it underscores the importance of customizing tools to fit specific team needs, thereby enhancing project delivery efficiency. It highlights the need for continuous evaluation of existing processes and tools to ensure they align with strategic goals and improve team performance. Effective tool integration and customization can lead to better stakeholder communication and more successful project outcomes.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/cesconix/mcp-wethod" target="_blank" rel="noopener">cesconix/mcp-wethod</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">51</span>
+        </span>
+        <span>08 Mar 2026 11:28 UTC</span>
+      </div>
+      <div class="article-summary">מאגר GitHub זה מתמקד בניהול פרויקטים ומספק שרת MCP לפרויקט Wethod. הוא כולל כלים לניהול זמנים, תכנון, תקציבים וכלי צוות. המאגר כתוב ב-TypeScript ולא זכה לכוכבים עד כה.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> למנהלי פרויקטים בחברות הייטק, כלים לניהול זמנים ותקציבים הם קריטיים להבטחת עמידה בלוחות זמנים ובתקציבים. השימוש בכלים כמו MCP יכול לשפר את התקשורת עם בעלי עניין ולסייע בתכנון אסטרטגי מדויק יותר.
+      </div>
+      
+    </div>
+    
+    
+    <div class="category-header">
+      <span class="category-icon">🧭</span>
+      <span class="category-title">Strategy &amp; OKRs</span>
+      <span class="category-count">(2 articles)</span>
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://www.romanpichler.com/blog/how-to-create-a-product-strategy-for-an-existing-product/" target="_blank" rel="noopener">How to Build a Strategy for an Existing Product</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#d97706;">★★★☆☆</span>
+          <span class="score-num" style="background:#d97706;">66</span>
+        </span>
+        <span>12 Jan 2026 10:23 UTC</span>
+      </div>
+      <div class="article-summary">The article by Roman Pichler outlines the importance of having a clear product strategy for existing products. A product strategy serves as a decision-making framework that helps align stakeholders and development teams, ensuring the right features are built to achieve product success. The strategy should address key questions about the target users, the problem it solves, its business benefits, and its unique features. The first step in developing a product strategy is to clearly articulate the current strategy using tools like the Product Vision Board.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> For Project/Program Managers in high-tech companies, a well-defined product strategy is crucial for guiding project delivery and ensuring alignment across teams. It helps in making informed decisions about feature prioritization and resource allocation. Clear communication of the strategy aids in managing stakeholder expectations and aligning team efforts towards shared goals.
+      </div>
+      
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/SimonBourdages/OKR-Miner" target="_blank" rel="noopener">SimonBourdages/OKR-Miner</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">52</span>
+        </span>
+        <span>08 Mar 2026 09:23 UTC</span>
+      </div>
+      <div class="article-summary">The GitHub repository &#39;SimonBourdages/OKR-Miner&#39; is a project that combines the concept of OKRs (Objectives and Key Results) with a space-themed idle game. It is designed to engage users in learning about OKRs through an interactive and entertaining format. Despite its low star count, the project offers a unique approach to understanding strategic planning and goal-setting frameworks.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> This repository is relevant to Project/Program Managers as it presents an innovative way to engage teams with OKRs, a critical tool for strategic alignment and performance tracking. By gamifying the learning process, PMs can foster a more engaging environment that enhances understanding and commitment to organizational goals. This approach can improve stakeholder communication and team alignment on strategic objectives.
+      </div>
+      
+    </div>
+    
+    
+    <div class="category-header">
+      <span class="category-icon">🎯</span>
+      <span class="category-title">Engineering Leadership</span>
+      <span class="category-count">(1 articles)</span>
+    </div>
+    
+    <div class="card">
+      <div class="article-title">
+        <a href="https://github.com/juliusz-cwiakalski/agentic-delivery-os" target="_blank" rel="noopener">juliusz-cwiakalski/agentic-delivery-os</a>
+      </div>
+      <div class="article-meta">
+        <span class="star-rating">
+          <span class="stars" style="color:#6366f1;">★★★☆☆</span>
+          <span class="score-num" style="background:#6366f1;">52</span>
+        </span>
+        <span>08 Mar 2026 09:23 UTC</span>
+      </div>
+      <div class="article-summary">The &#39;agentic-delivery-os&#39; GitHub repository focuses on integrating AI into the software development lifecycle (SDLC) to create a repeatable and auditable process. It emphasizes the use of AI agents and automation to streamline workflows from ticket creation to release, incorporating quality gates and governance. The repository provides templates, skills, and scripts to enhance developer productivity and ensure compliance with security and audit standards.</div>
+      
+      <div class="pm-box">
+        <strong>🗂️ For PM/PgM:</strong> For a Project/Program Manager in a high-tech company, integrating AI into the SDLC can significantly enhance project delivery by automating routine tasks and ensuring compliance with quality and security standards. This approach supports better team management by freeing up resources for more strategic tasks and improving stakeholder communication through transparent, auditable processes.
+      </div>
+      
+    </div>
+    
+    
+  </section>
+
+  <!-- ── Trend Landscape ─────────────────────────────────────────────────── -->
+  <section>
+    <h2>📈 Trend Landscape</h2>
+    
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            AI-Enhanced Scrum Practices
+            <span class="badge badge-alert">ALERT</span>
+            <span class="badge badge-trend">Agile &amp; Scrum</span>
+          </div>
+          <div class="trend-desc">AI tools, particularly Large Language Models (LLMs), are increasingly integrated into Scrum practices to automate tasks such as sprint planning, backlog grooming, and team flow management. These tools enhance efficiency while maintaining core Scrum principles, offering significant productivity gains for Scrum Masters and teams.</div>
+          <div class="trend-meta">
+            Articles: 10 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 09:29 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🤖</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            Generative AI in Agile Software Development
+            <span class="badge badge-alert">ALERT</span>
+            <span class="badge badge-trend">AI for PM</span>
+          </div>
+          <div class="trend-desc">Generative AI is being leveraged to improve productivity and quality in agile software development. By automating routine tasks and enhancing decision-making processes, AI tools are transforming how agile teams manage projects, leading to more efficient and effective development cycles.</div>
+          <div class="trend-meta">
+            Articles: 5 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 09:29 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card ">
+      <div class="trend-card">
+        <div class="trend-icon">🧭</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            Strategic Integration of OKRs and KPIs
+            
+            <span class="badge badge-trend">Strategy &amp; OKRs</span>
+          </div>
+          <div class="trend-desc">The integration of Objectives and Key Results (OKRs) with Key Performance Indicators (KPIs) is becoming a strategic priority for product success. This cohesive framework helps align team efforts with organizational goals, ensuring that strategic planning is both actionable and measurable.</div>
+          <div class="trend-meta">
+            Articles: 3 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 09:29 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            Remote and Hybrid Scrum Adaptations
+            <span class="badge badge-alert">ALERT</span>
+            <span class="badge badge-trend">Agile &amp; Scrum</span>
+          </div>
+          <div class="trend-desc">The adaptation of Scrum practices for remote and hybrid work environments is crucial as teams continue to navigate post-pandemic work settings. Adjustments in communication and collaboration tools are necessary to maintain productivity and team cohesion in these flexible work arrangements.</div>
+          <div class="trend-meta">
+            Articles: 2 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 09:29 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🗂️</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            Technical Debt Management in Agile Teams
+            <span class="badge badge-alert">ALERT</span>
+            <span class="badge badge-trend">Program Management</span>
+          </div>
+          <div class="trend-desc">Managing technical debt is becoming a critical focus for agile teams, particularly in multidisciplinary and data-intensive environments. Effective technical debt management processes are essential to maintain software quality and prevent long-term project risks.</div>
+          <div class="trend-meta">
+            Articles: 2 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 09:29 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            הטמעת AI בצוותי Scrum
+            <span class="badge badge-alert">ALERT</span>
+            <span class="badge badge-trend">Agile &amp; Scrum</span>
+          </div>
+          <div class="trend-desc">כלים מבוססי AI, במיוחד מודלים של שפה גדולה (LLMs), משנים את האופן שבו צוותי Scrum פועלים, תוך שמירה על עקרונות הליבה של המתודולוגיה. השימוש ב-AI מייעל תהליכים כמו תכנון ספרינט, ניהול backlog, והערכת סיפורים, ומאפשר לצוותים להתמקד במשימות בעלות ערך גבוה יותר.</div>
+          <div class="trend-meta">
+            Articles: 11 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 11:33 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card alert-card">
+      <div class="trend-card">
+        <div class="trend-icon">🗂️</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            שילוב AI בתפקידי מנהלי מוצר ובעלי מוצר
+            <span class="badge badge-alert">ALERT</span>
+            <span class="badge badge-trend">Program Management</span>
+          </div>
+          <div class="trend-desc">AI מספק כלים חדשניים למנהלי מוצר ובעלי מוצר, המאפשרים להם לנהל טוב יותר את מחזור חיי המוצר, לשפר את תהליכי קבלת ההחלטות ולהגביר את היעילות. כלים אלו מסייעים במעקב אחר מדדי הצלחה, ניתוח שוק, ותכנון אסטרטגי.</div>
+          <div class="trend-meta">
+            Articles: 2 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 11:33 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card ">
+      <div class="trend-card">
+        <div class="trend-icon">🧭</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            ניהול צוותים עצמאיים במתודולוגיות אג&#39;יליות
+            
+            <span class="badge badge-trend">Strategy &amp; OKRs</span>
+          </div>
+          <div class="trend-desc">המחקרים מראים מגמה של מעבר לצוותים עצמאיים במתודולוגיות אג&#39;יליות, שבהם ההנהגה והחלטות מתקבלות בצורה מבוזרת. מגמה זו עשויה להוביל לשיפור במוטיבציה ובמעורבות הצוותים, אך דורשת התאמות בתהליכי הניהול והפיקוח.</div>
+          <div class="trend-meta">
+            Articles: 2 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 11:33 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card ">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            שילוב EVM בניהול סיכונים בפרויקטים אג&#39;יליים
+            
+            <span class="badge badge-trend">Agile &amp; Scrum</span>
+          </div>
+          <div class="trend-desc">ניהול ערך נצבר (EVM) משולב יותר ויותר במתודולוגיות אג&#39;יליות לניהול סיכונים. שילוב זה מאפשר למנהלי פרויקטים לעקוב אחר התקדמות הפרויקט בצורה מדויקת יותר ולחזות בעיות פוטנציאליות מוקדם יותר בתהליך.</div>
+          <div class="trend-meta">
+            Articles: 1 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 11:33 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card ">
+      <div class="trend-card">
+        <div class="trend-icon">🔄</div>
+        <div class="trend-body">
+          <div class="trend-name">
+            שינוי במבנה תפקידי Product Operations
+            
+            <span class="badge badge-trend">Agile &amp; Scrum</span>
+          </div>
+          <div class="trend-desc">תפקידי Product Operations עוברים שינוי ומתרכזים יותר בעיצוב תשתיות קבלת החלטות ובשיפור המהירות והאיכות של תהליכי קבלת החלטות. מגמה זו משפרת את היכולת של ארגונים להגיב לשינויים בשוק ולשפר את ביצועי המוצר.</div>
+          <div class="trend-meta">
+            Articles: 1 &nbsp;|&nbsp;
+            Last seen: 08 Mar 2026 11:33 UTC &nbsp;|&nbsp;
+            Momentum: 100.0
+          </div>
+          <div class="momentum-bar">
+            <div class="momentum-fill" style="width: 100.0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    
+  </section>
+
+</div>
+
+<div class="footer">
+  PM Intelligence Agent &nbsp;|&nbsp; Generated automatically &nbsp;|&nbsp; 09 Mar 2026 06:52 UTC
+</div>
+
+</body>
+</html>
