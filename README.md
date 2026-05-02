@@ -26,6 +26,14 @@ intelligence reports tailored for **Project Managers**, **Program Managers**, an
 
 ---
 
+## Report Preview
+
+| Dashboard & Alerts | Top Articles with AI Summaries |
+|---|---|
+| ![Report header](docs/report-header.png) | ![Report articles](docs/report-articles.png) |
+
+---
+
 ## What It Does
 
 | Capability              | Details                                                                                                                              |
