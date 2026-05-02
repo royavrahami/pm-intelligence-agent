@@ -1,9 +1,28 @@
 # PM Intelligence Agent
 
+[![PM Intelligence Agent](https://github.com/royavrahami/pm-intelligence-agent/actions/workflows/agent.yml/badge.svg)](https://github.com/royavrahami/pm-intelligence-agent/actions/workflows/agent.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://python.org)
+
 An autonomous agent that continuously monitors the **Project Management, Program Management,
 Agile, Engineering Leadership, and Strategy** landscape — then delivers structured, actionable
 intelligence reports tailored for **Project Managers**, **Program Managers**, and
 **Tech Leads** in the high-tech industry.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Language** | Python 3.11+ |
+| **LLM** | OpenAI GPT-4o-mini |
+| **Database** | SQLAlchemy ORM — SQLite (local) or PostgreSQL (production) |
+| **Scheduling** | APScheduler |
+| **Config** | pydantic-settings + `.env` |
+| **Notifications** | SMTP (email) + Slack Web API |
+| **Containerisation** | Docker + Docker Compose |
+| **Testing** | pytest + pytest-cov |
 
 ---
 
@@ -164,15 +183,25 @@ pm-intelligence-agent/
 
 ### Execution Cycle
 
-```
-CoreAgent.run()
-  ├── 1. Load active sources from DB
-  ├── 2. Collect   → RSS + GitHub + Arxiv + Web scrapers
-  ├── 3. Process   → Score relevance (fast) → AI summarise (high-score items only)
-  ├── 4. Trends    → LLM detects PM/PgM themes across recent articles
-  ├── 5. Discover  → Mine pages + ask LLM for new PM source recommendations
-  ├── 6. Report    → Generate HTML + Markdown
-  └── 7. Notify    → Email + Slack alerts for high-momentum trends
+```mermaid
+flowchart TD
+    A[Scheduler / CLI] --> B[CoreAgent.run]
+    B --> C[Load Sources from DB]
+    C --> D[Collect]
+    D --> D1[RSS Feeds]
+    D --> D2[GitHub Trending]
+    D --> D3[Arxiv Papers]
+    D --> D4[Web Scraper]
+    D1 & D2 & D3 & D4 --> E[RelevanceScorer]
+    E --> F["AI Summarizer (GPT-4o-mini)\nhigh-score items only"]
+    F --> G[TrendAnalyzer]
+    G --> H[SourceDiscoverer]
+    H --> I[ReportGenerator]
+    I --> I1[HTML Report]
+    I --> I2[Markdown Report]
+    I1 & I2 --> J[Notifier]
+    J --> J1[Email]
+    J --> J2[Slack]
 ```
 
 ---
@@ -183,6 +212,26 @@ CoreAgent.run()
 pytest                        # Run all tests with coverage
 pytest -m "not integration"   # Skip tests that need network
 pytest tests/test_storage/    # Run a specific module
+```
+
+### Example Test Output
+
+```
+========================= test session starts ==========================
+platform linux -- Python 3.11.9, pytest-8.3.2
+collected 44 items
+
+tests/test_collectors/test_rss_collector.py ........              [  18%]
+tests/test_processors/test_relevance_scorer.py ..........         [  40%]
+tests/test_processors/test_summarizer.py ....                     [  49%]
+tests/test_storage/test_article_repository.py ..............      [  81%]
+tests/test_agent/test_trend_analyzer.py ........                  [  99%]
+tests/test_notifications/test_notifier.py .                       [100%]
+
+---------- coverage: platform linux, python 3.11.9 -----------
+TOTAL                                                        85%
+
+==================== 44 passed in 5.91s ====================
 ```
 
 ---
@@ -216,6 +265,22 @@ but differ in:
 | Keywords | LLM testing, QA automation, playwright | OKR, Scrum, SAFe, risk management, roadmap |
 | Summarizer | QA Manager perspective | Project/Program Manager perspective |
 | Categories | genai, agents, qa_testing, devops | project_management, program_management, agile, leadership, strategy |
+
+---
+
+## Limitations & Next Steps
+
+**Current limitations:**
+- Report generation requires an active OpenAI API key (no offline fallback)
+- Source discovery quality depends on GPT responses — occasionally suggests irrelevant feeds
+- No deduplication across very similar articles from different sources
+
+**Planned improvements:**
+- [ ] Web UI dashboard (replace static HTML reports)
+- [ ] Vector-based semantic deduplication
+- [ ] Support for additional LLM providers (Anthropic Claude, Gemini)
+- [ ] Slack slash-command to trigger on-demand reports
+- [ ] Multi-workspace configuration (one agent, multiple topic profiles)
 
 ---
 
