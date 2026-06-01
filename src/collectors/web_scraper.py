@@ -13,7 +13,7 @@ import logging
 import re
 from datetime import datetime, timezone
 from typing import Optional
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
