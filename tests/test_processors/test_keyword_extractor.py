@@ -6,8 +6,7 @@ One class per file per project convention.
 from __future__ import annotations
 
 import json
-from unittest.mock import MagicMock, patch
-
+from unittest.mock import patch
 
 from src.processors.keyword_extractor import KeywordExtractor
 from src.storage.models import Article
@@ -95,20 +94,30 @@ class TestFromInsightsExtraction:
         assert isinstance(keywords, list)
 
 
+class _FakeProvider:
+    """LLMProvider stub for the keyword extractor's LLM path."""
+
+    name = "fake"
+
+    def __init__(self, content=None, error=None):
+        self._content = content
+        self._error = error
+
+    def chat_json(self, system, user, *, model, max_tokens, temperature=0.3, timeout=None):
+        if self._error is not None:
+            raise self._error
+        return self._content
+
+
 class TestLLMKeywordExtraction:
     """Verify LLM-based keyword extraction is called and parsed correctly."""
 
     def test_llm_keywords_returned_as_list(self):
         """When LLM is available, it should return a clean list of PM keywords."""
-        with patch("src.processors.keyword_extractor.OpenAI") as mock_client_class:
-            mock_response = MagicMock()
-            mock_response.choices[0].message.content = json.dumps({
-                "keywords": ["OKR Alignment", "Sprint Planning", "Risk Management", "SAFe"]
-            })
-            mock_client = MagicMock()
-            mock_client.chat.completions.create.return_value = mock_response
-            mock_client_class.return_value = mock_client
-
+        provider = _FakeProvider(content=json.dumps({
+            "keywords": ["OKR Alignment", "Sprint Planning", "Risk Management", "SAFe"]
+        }))
+        with patch("src.processors.keyword_extractor.get_provider", return_value=provider):
             extractor = KeywordExtractor(use_llm=True)
             article = _make_article(
                 title="Managing OKRs in SAFe Environments",
@@ -121,11 +130,8 @@ class TestLLMKeywordExtraction:
 
     def test_llm_failure_falls_back_to_statistical(self):
         """An LLM API failure should fall back to statistical extraction without raising."""
-        with patch("src.processors.keyword_extractor.OpenAI") as mock_client_class:
-            mock_client = MagicMock()
-            mock_client.chat.completions.create.side_effect = Exception("API error")
-            mock_client_class.return_value = mock_client
-
+        provider = _FakeProvider(error=Exception("API error"))
+        with patch("src.processors.keyword_extractor.get_provider", return_value=provider):
             extractor = KeywordExtractor(use_llm=True)
             article = _make_article(
                 title="Agile Transformation Roadmap",

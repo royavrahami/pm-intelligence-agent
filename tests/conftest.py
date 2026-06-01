@@ -20,7 +20,6 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from src.storage.models import Article, Base, Source
 
-
 # ── Database fixtures ──────────────────────────────────────────────────────────
 
 @pytest.fixture(scope="function")

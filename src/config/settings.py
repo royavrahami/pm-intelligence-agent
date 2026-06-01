@@ -26,10 +26,16 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # ── OpenAI ────────────────────────────────────────────────────────────────
+    # ── LLM provider ──────────────────────────────────────────────────────────
+    llm_provider: str = Field(
+        default="openai", description="LLM provider: 'openai' or 'anthropic'"
+    )
     openai_api_key: str = Field(default="", description="OpenAI API key (required for AI features)")
     openai_model: str = Field(default="gpt-4o-mini", description="OpenAI model for summarisation")
     openai_max_tokens: int = Field(default=2000, description="Max tokens per summarisation call")
+    anthropic_api_key: str = Field(
+        default="", description="Anthropic API key (only for llm_provider=anthropic)"
+    )
 
     # ── GitHub ────────────────────────────────────────────────────────────────
     github_token: str = Field(default="", description="GitHub PAT – raises API rate limit from 60 to 5000/hr")

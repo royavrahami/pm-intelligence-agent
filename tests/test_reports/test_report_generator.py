@@ -9,7 +9,6 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-
 from src.reports.report_generator import ReportGenerator
 from src.storage.models import Article, Source, Trend
 

@@ -7,8 +7,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-
-from src.collectors.rss_collector import RSSCollector, _parse_date, _extract_content
+from src.collectors.rss_collector import RSSCollector, _extract_content, _parse_date
 from src.storage.repository import ArticleRepository, SourceRepository
 
 

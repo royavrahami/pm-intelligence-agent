@@ -7,8 +7,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-
-from src.processors.relevance_scorer import RelevanceScorer, _CATEGORY_BONUSES
+from src.processors.relevance_scorer import _CATEGORY_BONUSES, RelevanceScorer
 from src.storage.models import Article, Source
 
 

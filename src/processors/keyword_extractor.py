@@ -17,9 +17,8 @@ import re
 import string
 from collections import Counter
 
-from openai import OpenAI
-
 from src.config.settings import settings
+from src.llm import get_provider
 from src.storage.models import Article
 
 logger = logging.getLogger(__name__)
@@ -111,30 +110,21 @@ class KeywordExtractor:
     def _from_llm(self, article: Article) -> list[str]:
         """Ask GPT to return the top PM-focused keywords as a JSON array."""
         try:
-            client = OpenAI(api_key=settings.openai_api_key)
-
             text = f"{article.title}\n{(article.raw_content or '')[:1500]}"
-            response = client.chat.completions.create(
+            raw = get_provider().chat_json(
+                system=(
+                    "You are a keyword extractor for project/program management content. "
+                    "Return ONLY a JSON array of up to 6 short, meaningful keywords "
+                    "or keyphrases (2-3 words max each). "
+                    "Focus on PM frameworks, tools, methodologies, concepts. "
+                    "No stop words. "
+                    'Example: ["OKRs", "Agile Sprint", "Kanban", "SAFe", "Risk Management"]'
+                ),
+                user=text,
                 model="gpt-4o-mini",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are a keyword extractor for project/program management content. "
-                            "Return ONLY a JSON array of up to 6 short, meaningful keywords "
-                            "or keyphrases (2-3 words max each). "
-                            "Focus on PM frameworks, tools, methodologies, concepts. "
-                            "No stop words. "
-                            'Example: ["OKRs", "Agile Sprint", "Kanban", "SAFe", "Risk Management"]'
-                        ),
-                    },
-                    {"role": "user", "content": text},
-                ],
                 max_tokens=80,
                 temperature=0.1,
-                response_format={"type": "json_object"},
             )
-            raw = response.choices[0].message.content
             data = json.loads(raw)
             if isinstance(data, list):
                 return [str(k) for k in data]

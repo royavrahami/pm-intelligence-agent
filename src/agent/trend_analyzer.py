@@ -20,10 +20,8 @@ import time
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-import openai
-from openai import OpenAI
-
 from src.config.settings import settings
+from src.llm import LLMProvider, ProviderError, ProviderRateLimitError, get_provider
 from src.storage.models import Article, Trend
 from src.storage.repository import ArticleRepository, TrendRepository
 
@@ -89,10 +87,11 @@ class TrendAnalyzer:
         api_key: Optional[str] = None,
         model: Optional[str] = None,
         language: Optional[str] = None,
+        provider: Optional[LLMProvider] = None,
     ) -> None:
         self._article_repo = article_repo
         self._trend_repo = trend_repo
-        self._client = OpenAI(api_key=api_key or settings.openai_api_key)
+        self._provider = provider or get_provider(api_key=api_key)
         self._model = model or settings.openai_model
         self._trend_prompt = _build_trend_prompt(language or settings.report_language)
 
@@ -152,18 +151,14 @@ class TrendAnalyzer:
         user_content = f"Articles from the knowledge base (last 30 days):\n{article_list_str}"
 
         try:
-            response = self._client.chat.completions.create(
+            raw = self._provider.chat_json(
+                system=self._trend_prompt,
+                user=user_content,
                 model=self._model,
-                messages=[
-                    {"role": "system", "content": self._trend_prompt},
-                    {"role": "user", "content": user_content},
-                ],
                 max_tokens=1500,
                 temperature=0.4,
-                response_format={"type": "json_object"},
                 timeout=60,
             )
-            raw = response.choices[0].message.content
             data = json.loads(raw)
 
             if isinstance(data, list):
@@ -205,10 +200,10 @@ class TrendAnalyzer:
             )
             return []
 
-        except openai.RateLimitError:
-            logger.warning("OpenAI rate limit hit during PM trend analysis")
-        except openai.APITimeoutError:
-            logger.warning("OpenAI API timeout during PM trend analysis (timeout=60s)")
+        except ProviderRateLimitError:
+            logger.warning("LLM rate limit hit during PM trend analysis")
+        except ProviderError as exc:
+            logger.warning("LLM call failed during PM trend analysis (%s)", exc)
         except Exception as exc:
             logger.error("PM trend LLM call failed: %s", exc)
         return []

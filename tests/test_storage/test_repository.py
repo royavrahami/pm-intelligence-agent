@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-
 from src.storage.models import Article
 from src.storage.repository import (
     AgentRunRepository,
