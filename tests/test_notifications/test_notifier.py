@@ -151,3 +151,96 @@ def test_send_email_builds_body_and_attempts_send(monkeypatch) -> None:
 
     assert "body" in captured
     assert "PM Intelligence" in captured["body"]
+
+
+def _digest_article(i: int):
+    return SimpleNamespace(
+        title=f"Digest Article {i}",
+        url=f"https://example.com/d-{i}",
+        category="agile",
+        keywords=["kw1", "kw2", "kw3"],
+        relevance_score=70 - i,
+        published_date="01 May 2026",
+        collected_date="02 May 2026",
+    )
+
+
+def _digest_stats():
+    return SimpleNamespace(
+        date_str="01 May 2026",
+        total_articles=2,
+        avg_relevance=60.0,
+        alert_count=1,
+        category_counts={"agile": 2},
+        top_keywords=[("agile", 5), ("okrs", 3)],
+    )
+
+
+def test_send_digest_email_builds_and_sends(monkeypatch) -> None:
+    monkeypatch.setattr(_settings, "smtp_user", "from@example.com", raising=False)
+    monkeypatch.setattr(_settings, "smtp_password", "pw", raising=False)
+    monkeypatch.setattr(_settings, "notify_email", "to@example.com", raising=False)
+    monkeypatch.setattr(_settings, "smtp_host", "smtp.example.com", raising=False)
+    monkeypatch.setattr(_settings, "smtp_port", 587, raising=False)
+
+    captured: dict[str, str] = {}
+
+    class FakeSMTP:
+        def __init__(self, *a, **k) -> None:
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a) -> bool:
+            return False
+
+        def ehlo(self) -> None:
+            pass
+
+        def starttls(self) -> None:
+            pass
+
+        def login(self, *a) -> None:
+            pass
+
+        def sendmail(self, frm, to, body) -> None:
+            captured["body"] = body
+
+    monkeypatch.setattr("src.notifications.email_renderer.smtplib.SMTP", FakeSMTP)
+
+    EmailRenderer.send_digest_email(
+        [_digest_article(1), _digest_article(2)],
+        _digest_stats(),
+        [_trend("Surge in Agile")],
+        None,
+    )
+
+    # HTML body is base64-encoded in the MIME message; assert plaintext headers.
+    assert "body" in captured
+    assert "PM Intelligence Agent" in captured["body"]  # plaintext From header
+    assert len(captured["body"]) > 500
+
+
+def test_send_slack_posts_message(monkeypatch) -> None:
+    import slack_sdk
+
+    monkeypatch.setattr(_settings, "slack_bot_token", "xoxb-test", raising=False)
+    monkeypatch.setattr(_settings, "slack_channel", "#pm", raising=False)
+
+    posted: dict[str, object] = {}
+
+    class FakeWebClient:
+        def __init__(self, token=None) -> None:
+            posted["token"] = token
+
+        def chat_postMessage(self, channel, blocks, text):
+            posted["channel"] = channel
+            posted["blocks"] = blocks
+
+    monkeypatch.setattr(slack_sdk, "WebClient", FakeWebClient)
+
+    SlackNotifier.send_slack([_trend("Surge in Agile")], None)
+
+    assert posted["channel"] == "#pm"
+    assert isinstance(posted["blocks"], list) and posted["blocks"]
