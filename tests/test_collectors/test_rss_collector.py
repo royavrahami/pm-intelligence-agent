@@ -5,10 +5,8 @@ One class per file per project convention.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from src.collectors.rss_collector import RSSCollector, _parse_date, _extract_content
 from src.storage.repository import ArticleRepository, SourceRepository
