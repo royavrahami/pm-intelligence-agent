@@ -226,23 +226,27 @@ pytest tests/test_storage/    # Run a specific module
 
 ```
 ========================= test session starts =========================
-collected 78 items
+collected 97 items
 
-tests/test_agent/test_trend_analyzer.py .............             [ 16%]
-tests/test_collectors/test_rss_collector.py ......                [ 24%]
-tests/test_notifications/test_notifier.py ........               [ 34%]
-tests/test_processors/test_content_processor.py ..               [ 37%]
-tests/test_processors/test_keyword_extractor.py .......           [ 46%]
-tests/test_processors/test_relevance_scorer.py ............       [ 61%]
-tests/test_processors/test_summarizer.py ......                   [ 69%]
-tests/test_reports/test_report_generator.py ........             [ 79%]
-tests/test_storage/test_database.py ...                           [ 83%]
+tests/test_agent/test_daily_digest_agent.py .....                 [  5%]
+tests/test_agent/test_trend_analyzer.py .............             [ 18%]
+tests/test_collectors/test_arxiv_collector.py ........            [ 26%]
+tests/test_collectors/test_github_collector.py ....               [ 30%]
+tests/test_collectors/test_rss_collector.py ......                [ 37%]
+tests/test_notifications/test_notifier.py ........               [ 45%]
+tests/test_processors/test_content_processor.py ..               [ 47%]
+tests/test_processors/test_keyword_extractor.py .......           [ 54%]
+tests/test_processors/test_relevance_scorer.py ............       [ 67%]
+tests/test_processors/test_summarizer.py ......                   [ 73%]
+tests/test_reports/test_report_generator.py ........             [ 81%]
+tests/test_scheduler/test_scheduler.py ..                         [ 83%]
+tests/test_storage/test_database.py ...                           [ 86%]
 tests/test_storage/test_repository.py .............               [100%]
 
 ---------- coverage: platform, python 3.12 -----------
-TOTAL                                    2010   1054    48%
+TOTAL                                    2010    729    64%
 
-========================= 78 passed in 7.83s =========================
+========================= 97 passed in 7.78s =========================
 ```
 
 > Coverage currently concentrates on the scoring, summarisation, reporting

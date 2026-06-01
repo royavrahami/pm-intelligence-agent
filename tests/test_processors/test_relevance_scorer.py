@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-import pytest
 
 from src.processors.relevance_scorer import RelevanceScorer, _CATEGORY_BONUSES
 from src.storage.models import Article, Source
@@ -151,7 +150,6 @@ class TestRelevanceScorerFreshness:
         assert score_fresh > score_old
 
     def test_very_old_article_gets_no_freshness_bonus(self):
-        from src.processors.relevance_scorer import RelevanceScorer
         scorer = _make_scorer()
         old_date = datetime.now(timezone.utc) - timedelta(days=30)
         bonus = scorer._freshness_bonus(old_date)

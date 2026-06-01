@@ -8,7 +8,6 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock, patch
 
-import pytest
 import openai
 
 from src.processors.summarizer import Summarizer
