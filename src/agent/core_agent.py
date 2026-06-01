@@ -23,12 +23,12 @@ from typing import Optional
 
 import yaml
 
+from src.agent.source_discoverer import SourceDiscoverer
+from src.agent.trend_analyzer import TrendAnalyzer
 from src.collectors.arxiv_collector import ArxivCollector
 from src.collectors.github_collector import GitHubCollector
 from src.collectors.rss_collector import RSSCollector
 from src.collectors.web_scraper import WebScraper
-from src.agent.source_discoverer import SourceDiscoverer
-from src.agent.trend_analyzer import TrendAnalyzer
 from src.config.settings import settings
 from src.notifications.notifier import Notifier
 from src.processors.content_processor import ContentProcessor

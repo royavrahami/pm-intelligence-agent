@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from src.agent.trend_analyzer import TrendAnalyzer, _SIMILARITY_THRESHOLD
+from src.agent.trend_analyzer import _SIMILARITY_THRESHOLD, TrendAnalyzer
 from src.storage.models import Trend
 
 

@@ -18,12 +18,11 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from urllib.parse import urljoin, urlparse
 
-import openai
 import requests
 from bs4 import BeautifulSoup
-from openai import OpenAI
 
 from src.config.settings import settings
+from src.llm import LLMProvider, ProviderError, ProviderRateLimitError, get_provider
 from src.storage.repository import (
     ArticleRepository,
     KnowledgeExpansionRepository,
@@ -89,11 +88,12 @@ class SourceDiscoverer:
         expansion_repo: KnowledgeExpansionRepository,
         api_key: Optional[str] = None,
         model: Optional[str] = None,
+        provider: Optional[LLMProvider] = None,
     ) -> None:
         self._source_repo = source_repo
         self._article_repo = article_repo
         self._expansion_repo = expansion_repo
-        self._client = OpenAI(api_key=api_key or settings.openai_api_key)
+        self._provider = provider or get_provider(api_key=api_key)
         self._model = model or settings.openai_model
         self._http_session = requests.Session()
         self._http_session.headers.update({"User-Agent": "PMIntelligenceAgent/1.0"})
@@ -195,25 +195,21 @@ class SourceDiscoverer:
         user_message = f"Current PM/PgM sources I monitor:\n{context}"
 
         try:
-            response = self._client.chat.completions.create(
+            raw = self._provider.chat_json(
+                system=_LLM_DISCOVERY_PROMPT,
+                user=user_message,
                 model=self._model,
-                messages=[
-                    {"role": "system", "content": _LLM_DISCOVERY_PROMPT},
-                    {"role": "user", "content": user_message},
-                ],
                 max_tokens=1000,
                 temperature=0.5,
-                response_format={"type": "json_object"},
                 timeout=60,
             )
-            raw = response.choices[0].message.content
             suggestions = self._parse_suggestions(raw)
 
-        except openai.RateLimitError:
+        except ProviderRateLimitError:
             logger.warning("Rate limit hit during PM source discovery LLM call")
             return 0
-        except openai.APITimeoutError:
-            logger.warning("OpenAI API timeout during PM source discovery (timeout=60s)")
+        except ProviderError as exc:
+            logger.warning("LLM PM source discovery call failed (%s)", exc)
             return 0
         except Exception as exc:
             logger.error("LLM PM source discovery failed: %s", exc)

@@ -21,10 +21,10 @@ import argparse
 import logging
 import sys
 
+from rich import box
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.table import Table
-from rich import box
 
 # ── Logging setup (must happen before any src imports) ─────────────────────────
 logging.basicConfig(
@@ -69,7 +69,7 @@ def cmd_report(_args: argparse.Namespace) -> None:
 
     from src.config.settings import settings
     from src.reports.report_generator import ReportGenerator
-    from src.storage.database import init_db, get_session
+    from src.storage.database import get_session, init_db
     from src.storage.repository import ArticleRepository, TrendRepository
 
     init_db()
@@ -94,7 +94,7 @@ def cmd_report(_args: argparse.Namespace) -> None:
 
 def cmd_status(_args: argparse.Namespace) -> None:
     """Display a table of the last agent runs."""
-    from src.storage.database import init_db, get_session
+    from src.storage.database import get_session, init_db
     from src.storage.repository import AgentRunRepository
 
     init_db()
@@ -161,7 +161,7 @@ def cmd_digest(args: argparse.Namespace) -> None:
 
 def cmd_sources(_args: argparse.Namespace) -> None:
     """List all registered PM information sources."""
-    from src.storage.database import init_db, get_session
+    from src.storage.database import get_session, init_db
     from src.storage.repository import SourceRepository
 
     init_db()
